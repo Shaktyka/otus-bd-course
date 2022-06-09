@@ -225,3 +225,18 @@ CREATE TABLE IF NOT EXISTS order_history
     order_id bigint NOT NULL REFERENCES orders(id),
     status_id int NOT NULL REFERENCES statuses(id)
 );
+
+-- Таблица "Доставка"
+CREATE TABLE IF NOT EXISTS shipping
+(
+    id serial NOT NULL UNIQUE PRIMARY KEY,
+    dttmcr timestamptz NOT NULL DEFAULT now(),
+    dttmup timestamptz,
+    dttmcl timestamptz,
+    order_id bigint NOT NULL REFERENCES orders(id),
+    ship_method int NOT NULL REFERENCES ship_methods(id),
+    ship_date date,
+    ship_price numeric DEFAULT 0,
+    currency_id int NOT NULL,
+    status_id int NOT NULL REFERENCES statuses(id)
+);
