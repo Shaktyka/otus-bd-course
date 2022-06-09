@@ -1,0 +1,209 @@
+
+// Пользователи
+Table users as U {
+    id int [pk, increment, not null, unique]
+    dttmcr timestamptz [not null]
+    dttmup timestamptz
+    dttmcl timestamptz
+    last_name text
+    first_name text [not null]
+    middle_name text
+    birth_date date
+    email text [unique, not null]
+    password_hash text [not null]
+    address jsonb
+    phone text
+    gender int
+    status_id int
+}
+
+// Категории товаров
+Table categories as CT {
+    id int [pk, increment, not null, unique]
+    dttmcr timestamptz [not null]
+    dttmup timestamptz
+    dttmcl timestamptz
+    parent_id int [not null, ref: > CT.id]
+    category text [not null, unique]
+    description text
+}
+
+// Производители товаров
+Table manufacturers as M {
+    id int [pk, increment, not null, unique]
+    dttmcr timestamptz [not null]
+    dttmup timestamptz
+    dttmcl timestamptz
+    manufacturer text [not null]
+    address jsonb [not null]
+    logo text
+    site text
+}
+
+// Поставщики
+Table suppliers as S {
+    id int [pk, increment, not null, unique]
+    dttmcr timestamptz [not null]
+    dttmup timestamptz
+    dttmcl timestamptz
+    supplier text [not null, unique]
+    company_phone text
+    address_full jsonb [not null]
+    postal_code text
+    country text
+    region text
+    city text
+    address text
+    contacts_full jsonb 
+    manager_id int [ref: > U.id]
+    site text
+    description text
+}
+
+// Группы статусов
+Table status_groups as ST {
+    id int [pk, increment, not null, unique]
+    dttmcr timestamptz [not null]
+    dttmup timestamptz
+    dttmcl timestamptz
+    status_group text
+    description text
+}
+
+// Статусы
+Table statuses as SS {
+    id int [pk, increment, not null, unique]
+    dttmcr timestamptz [not null]
+    dttmup timestamptz
+    dttmcl timestamptz
+    status_group_id int [not null, ref: > ST.id]
+    status text [not null, unique]
+    description text
+}
+
+// Единицы измерения (грамм, шт., упаковка и т.п)
+Table units as UN {
+    id int [pk, increment, not null, unique]
+    dttmcr timestamptz [not null]
+    dttmup timestamptz
+    dttmcl timestamptz
+    unit text [not null, unique]
+}
+
+// Товары
+Table products as P {
+    id int [pk, increment, not null, unique]
+    dttmcr timestamptz [not null]
+    dttmup timestamptz
+    dttmcl timestamptz
+    vendor_code text [not null]
+    product text [not null]
+    manufacturer_id int [not null, ref: > M.id]
+    supplier_id int [not null, ref: > S.id]
+    category_id int [ref: > CT.id]
+    photos text[] [not null]
+    description text
+    quantity_per_unit int [not null]
+    units_id int [not null, ref: > UN.id]
+    units_in_stock int [not null, default: 0]
+    status_id int [not null, ref: > SS.id]
+}
+
+// Справочник характеристик товара
+Table parameters as PR {
+    id int [pk, increment, not null, unique]
+    dttmcr timestamptz [not null]
+    dttmup timestamptz
+    dttmcl timestamptz
+    parameter text [not null, unique]
+}
+
+// Связь характеристик товара с продуктом  
+Table product_params {
+    id int [pk, increment, not null, unique]
+    dttmcr timestamptz [not null]
+    dttmup timestamptz
+    dttmcl timestamptz
+    product_id int [not null, ref: > P.id]
+    parameter_id int [not null, unique, ref: > PR.id]
+    value_int int
+    value_text text
+    value_numeric numeric
+    value_int_arr int[]
+    value_text_arr text[]
+    value_jsonb jsonb
+}
+
+// Валюты
+Table currency as CR {
+    id int [pk, increment, not null, unique]
+    dttmcr timestamptz [not null]
+    dttmup timestamptz
+    dttmcl timestamptz
+    currency text [not null]
+    code text [not null]
+    cbr_name text
+    rate numeric
+}
+
+// Цены
+Table prices as PC {
+    id int [pk, increment, not null, unique]
+    dttmcr timestamptz [not null]
+    dttmup timestamptz
+    dttmcl timestamptz
+    actual_date timestamptz [not null]
+    product_id int [not null, ref: > P.id]
+    amount numeric [not null]
+    currency_id int [not null, ref: > CR.id]
+}
+
+// Справочник характеристик товара
+Table pay_methods as PM {
+    id int [pk, increment, not null, unique]
+    dttmcr timestamptz [not null]
+    dttmup timestamptz
+    dttmcl timestamptz
+    pay_method text [not null, unique]
+}
+
+// Справочник характеристик товара
+Table ship_methods as SM {
+    id int [pk, increment, not null, unique]
+    dttmcr timestamptz [not null]
+    dttmup timestamptz
+    dttmcl timestamptz
+    ship_methods_method text [not null, unique]
+}
+
+// Заказы
+Table orders as O {
+    id bigint [pk, increment, not null, unique]
+    dttmcr timestamptz [not null]
+    dttmup timestamptz
+    dttmcl timestamptz
+    user_id int [not null, ref: > U.id]
+    order_sum numeric [not null]
+    currency_id int [not null, ref: > CR.id]
+    pay_method_id int [not null, ref: > PM.id]
+    ship_method_id int [not null, ref: > SM.id]
+    last_status_id int [not null, ref: > SS.id]
+}
+
+// Товары в заказе
+Table order_items {
+    order_id bigint [not null, ref: > O.id]
+    product_id int [not null, ref: > P.id]
+    dttmcr timestamptz [not null]
+    dttmup timestamptz
+    dttmcl timestamptz
+    quantity int [not null, default: 1]
+} 
+
+// Смена статусов заказов
+Table order_history as OH {
+    id bigint [pk, increment, not null, unique]    
+    dttmcr timestamptz [not null]
+    order_id bigint [not null, ref: > O.id]
+    status_id int [not null, ref: > SS.id]
+}
