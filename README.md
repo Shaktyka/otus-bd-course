@@ -27,8 +27,8 @@
 
 ## Ссылка на схему базы данных
 
-https://dbdiagram.io/d/629af89f54ce2635275ad203
+https://dbdiagram.io/d/62a36b9892b33b4f513fcf9a
 
-Также можно посмотреть [скриншот](https://prnt.sc/OfY_esLfst_e) схемы БД.
+Также можно посмотреть [скриншот](/images/scheme_11-06-2022.png) схемы БД.
 
 

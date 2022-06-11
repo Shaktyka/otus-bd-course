@@ -90,7 +90,7 @@ Table units as UN {
     unit text [not null, unique]
 }
 
-// Товары
+// Товары (справочник)
 Table products as P {
     id int [pk, increment, not null, unique]
     dttmcr timestamptz [not null]
@@ -103,9 +103,6 @@ Table products as P {
     category_id int [ref: > CT.id]
     photos text[] [not null]
     description text
-    quantity_per_unit int [not null]
-    units_id int [not null, ref: > UN.id]
-    units_in_stock int [not null, default: 0]
     status_id int [not null, ref: > SS.id]
 }
 
@@ -134,28 +131,38 @@ Table product_params {
     value_jsonb jsonb
 }
 
-// Валюты
-Table currency as CR {
-    id int [pk, increment, not null, unique]
-    dttmcr timestamptz [not null]
-    dttmup timestamptz
-    dttmcl timestamptz
-    currency text [not null]
-    code text [not null]
-    cbr_name text
-    rate numeric
-}
-
 // Цены
 Table prices as PC {
     id int [pk, increment, not null, unique]
     dttmcr timestamptz [not null]
     dttmup timestamptz
     dttmcl timestamptz
-    actual_date timestamptz [not null]
     product_id int [not null, ref: > P.id]
-    amount numeric [not null]
-    currency_id int [not null, ref: > CR.id]
+    unit_id int [not null, ref: > UN.id]
+    unit_amount int [not null]
+    weight numeric 
+    price numeric [not null]
+}
+
+// Прайс-листы
+Table price_lists as PL {
+    id int [pk, increment, not null, unique]
+    dttmcr timestamptz [not null]
+    dttmup timestamptz
+    dttmcl timestamptz
+    actuality_date date [not null]
+    manager_id int [not null, ref: > U.id]
+}
+
+// Прайлистс_товары
+Table pricelist_products as PP {
+    id int [pk, increment, not null, unique]
+    dttmcr timestamptz [not null]
+    dttmup timestamptz
+    dttmcl timestamptz
+    pricelist_id int [not null, ref: > PL.id]
+    product_id int [not null, ref: > P.id]
+    price_id int [not null, ref: > PC.id]
 }
 
 // Справочник характеристик товара
@@ -167,7 +174,7 @@ Table pay_methods as PM {
     pay_method text [not null, unique]
 }
 
-// Справочник характеристик товара
+// Справочник способов доставки
 Table ship_methods as SM {
     id int [pk, increment, not null, unique]
     dttmcr timestamptz [not null]
@@ -184,7 +191,6 @@ Table orders as O {
     dttmcl timestamptz
     user_id int [not null, ref: > U.id]
     order_sum numeric [not null]
-    currency_id int [not null, ref: > CR.id]
     pay_method_id int [not null, ref: > PM.id]
     ship_method_id int [not null, ref: > SM.id]
     last_status_id int [not null, ref: > SS.id]
@@ -192,11 +198,12 @@ Table orders as O {
 
 // Товары в заказе
 Table order_items {
-    order_id bigint [not null, ref: > O.id]
-    product_id int [not null, ref: > P.id]
     dttmcr timestamptz [not null]
     dttmup timestamptz
     dttmcl timestamptz
+    order_id bigint [not null, ref: > O.id]
+    product_id int [not null, ref: > P.id]
+    price_id int [not null, ref: > PC.id]
     quantity int [not null, default: 1]
 } 
 
@@ -206,4 +213,39 @@ Table order_history as OH {
     dttmcr timestamptz [not null]
     order_id bigint [not null, ref: > O.id]
     status_id int [not null, ref: > SS.id]
+}
+
+// Доставка
+Table shipping as SH {
+    id bigint [pk, increment, not null, unique]
+    dttmcr timestamptz [not null]
+    dttmup timestamptz
+    dttmcl timestamptz
+    order_id bigint [not null, ref: > O.id]
+    ship_method_id int [not null, ref: > SM.id]
+    ship_date date 
+    ship_price numeric [default: 0]
+    status_id int [not null, ref: > SS.id]
+}
+
+// Поставки
+Table deliveries as D {
+    id int [pk, increment, not null, unique]
+    dttmcr timestamptz [not null]
+    dttmup timestamptz
+    dttmcl timestamptz
+    operation int [not null]
+    supplier_id int [not null, ref: > S.id]
+}
+
+// Поставка-товары
+Table delivery_items as DI {
+    id int [pk, increment, not null, unique]
+    dttmcr timestamptz [not null]
+    dttmup timestamptz
+    dttmcl timestamptz
+    delivery_id int [not null, ref: > D.id]
+    product_id int [not null, ref: > P.id]
+    price_id int [not null, ref: > PC.id]
+    amount int [not null]
 }
