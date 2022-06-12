@@ -145,7 +145,7 @@ Table prices as PC {
 }
 
 // Прайс-листы
-Table price_lists as PL {
+Table pricelists as PL {
     id int [pk, increment, not null, unique]
     dttmcr timestamptz [not null]
     dttmup timestamptz
@@ -156,7 +156,7 @@ Table price_lists as PL {
 
 // Прайлистс_товары
 Table pricelist_products as PP {
-    id int [pk, increment, not null, unique]
+    id bigint [pk, increment, not null, unique]
     dttmcr timestamptz [not null]
     dttmup timestamptz
     dttmcl timestamptz
@@ -217,7 +217,7 @@ Table order_history as OH {
 
 // Доставка
 Table shipping as SH {
-    id bigint [pk, increment, not null, unique]
+    id int [pk, increment, not null, unique]
     dttmcr timestamptz [not null]
     dttmup timestamptz
     dttmcl timestamptz
@@ -240,7 +240,7 @@ Table deliveries as D {
 
 // Поставка-товары
 Table delivery_items as DI {
-    id int [pk, increment, not null, unique]
+    id bigint [pk, increment, not null, unique]
     dttmcr timestamptz [not null]
     dttmup timestamptz
     dttmcl timestamptz
