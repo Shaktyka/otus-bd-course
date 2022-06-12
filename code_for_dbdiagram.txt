@@ -180,7 +180,7 @@ Table ship_methods as SM {
     dttmcr timestamptz [not null]
     dttmup timestamptz
     dttmcl timestamptz
-    ship_methods_method text [not null, unique]
+    ship_method text [not null, unique]
 }
 
 // Заказы
