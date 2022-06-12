@@ -1,3 +1,8 @@
+/* Принципы формирования ограничений
+    - я считаю, что реализацию основной массы ограничений, таких как длина строк и другие вариативные вещи, которые могут меняться со временем, лучше отдать на откуп бэкенда,
+    - но наиболее стабильные и очевидные ограничения лучше реализовывать на базе данных
+*/
+
 -- ОБЩИЕ СПРАВОЧНИКИ
 
 -- Таблица "Группы статусов"
@@ -206,7 +211,7 @@ CREATE TABLE IF NOT EXISTS deliveries
     dttmcr timestamptz NOT NULL DEFAULT now(),
     dttmup timestamptz,
     dttmcl timestamptz,
-    operation tinyint NOT NULL DEFAULT 1,
+    operation smallint NOT NULL DEFAULT 1,
     supplier_id int NOT NULL REFERENCES suppliers(id)
 );
 
@@ -225,6 +230,16 @@ CREATE TABLE IF NOT EXISTS delivery_items
 );
 
 -- ЗАКАЗЫ И ДОСТАВКА
+
+-- Таблица "Способ доставки"
+CREATE TABLE IF NOT EXISTS ship_methods
+(
+    id serial NOT NULL UNIQUE PRIMARY KEY,
+    dttmcr timestamptz NOT NULL DEFAULT now(),
+    dttmup timestamptz,
+    dttmcl timestamptz,
+    ship_method text NOT NULL UNIQUE
+);
 
 -- Таблица "Заказы"
 CREATE TABLE IF NOT EXISTS orders
@@ -254,16 +269,6 @@ CREATE TABLE IF NOT EXISTS order_items
 );
 
 -- здесь просится создать уникальный индекс на 3 столбца
-
--- Таблица "Способ доставки"
-CREATE TABLE IF NOT EXISTS ship_methods
-(
-    id serial NOT NULL UNIQUE PRIMARY KEY,
-    dttmcr timestamptz NOT NULL DEFAULT now(),
-    dttmup timestamptz,
-    dttmcl timestamptz,
-    ship_method text NOT NULL UNIQUE
-);
 
 -- Таблица "Доставка"
 CREATE TABLE IF NOT EXISTS shipping

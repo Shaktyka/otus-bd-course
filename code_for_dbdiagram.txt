@@ -234,7 +234,7 @@ Table deliveries as D {
     dttmcr timestamptz [not null]
     dttmup timestamptz
     dttmcl timestamptz
-    operation int [not null]
+    operation smallint [not null]
     supplier_id int [not null, ref: > S.id]
 }
 
