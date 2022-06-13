@@ -155,7 +155,7 @@ Table orders as O {
 // Товары в заказе
 Table order_items {
     dttmcr timestamptz [not null]
-    order_id bigint [not null, ref: > O.id]
+    order_id int [not null, ref: > O.id]
     product_id int [not null, ref: > P.id]
     price_id int [not null, ref: > PC.id]
     amount int [not null, default: 1]
