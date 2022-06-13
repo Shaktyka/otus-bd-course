@@ -3,15 +3,13 @@
 Table users as U {
     id int [pk, increment, not null, unique]
     dttmcr timestamptz [not null]
-    dttmup timestamptz
-    dttmcl timestamptz
     last_name text
     first_name text [not null]
     middle_name text
     birth_date date
     email text [unique, not null]
     password_hash text [not null]
-    address jsonb
+    address_full jsonb
     phone text
     gender int
     status_id int
@@ -21,72 +19,50 @@ Table users as U {
 Table categories as CT {
     id int [pk, increment, not null, unique]
     dttmcr timestamptz [not null]
-    dttmup timestamptz
-    dttmcl timestamptz
     parent_id int [not null, ref: > CT.id]
     category text [not null, unique]
-    description text
 }
 
 // Производители товаров
 Table manufacturers as M {
     id int [pk, increment, not null, unique]
     dttmcr timestamptz [not null]
-    dttmup timestamptz
-    dttmcl timestamptz
     manufacturer text [not null]
-    address jsonb [not null]
-    logo text
-    site text
+    address_full jsonb
+    logo_link text [not null]
+    site_link text
 }
 
 // Поставщики
 Table suppliers as S {
     id int [pk, increment, not null, unique]
     dttmcr timestamptz [not null]
-    dttmup timestamptz
-    dttmcl timestamptz
     supplier text [not null, unique]
     company_phone text
     address_full jsonb [not null]
-    postal_code text
-    country text
-    region text
-    city text
-    address text
-    contacts_full jsonb 
     manager_id int [ref: > U.id]
-    site text
-    description text
+    site_link text
 }
 
 // Группы статусов
 Table status_groups as ST {
     id int [pk, increment, not null, unique]
     dttmcr timestamptz [not null]
-    dttmup timestamptz
-    dttmcl timestamptz
     status_group text
-    description text
 }
 
 // Статусы
 Table statuses as SS {
     id int [pk, increment, not null, unique]
     dttmcr timestamptz [not null]
-    dttmup timestamptz
-    dttmcl timestamptz
     status_group_id int [not null, ref: > ST.id]
     status text [not null, unique]
-    description text
 }
 
 // Единицы измерения (грамм, шт., упаковка и т.п)
 Table units as UN {
     id int [pk, increment, not null, unique]
     dttmcr timestamptz [not null]
-    dttmup timestamptz
-    dttmcl timestamptz
     unit text [not null, unique]
 }
 
@@ -94,15 +70,13 @@ Table units as UN {
 Table products as P {
     id int [pk, increment, not null, unique]
     dttmcr timestamptz [not null]
-    dttmup timestamptz
-    dttmcl timestamptz
     vendor_code text [not null]
     product text [not null]
     manufacturer_id int [not null, ref: > M.id]
     supplier_id int [not null, ref: > S.id]
     category_id int [ref: > CT.id]
     photos text[] [not null]
-    description text
+    description_text text
     status_id int [not null, ref: > SS.id]
 }
 
@@ -110,17 +84,12 @@ Table products as P {
 Table parameters as PR {
     id int [pk, increment, not null, unique]
     dttmcr timestamptz [not null]
-    dttmup timestamptz
-    dttmcl timestamptz
     parameter text [not null, unique]
 }
 
 // Связь характеристик товара с продуктом  
 Table product_params {
-    id int [pk, increment, not null, unique]
     dttmcr timestamptz [not null]
-    dttmup timestamptz
-    dttmcl timestamptz
     product_id int [not null, ref: > P.id]
     parameter_id int [not null, unique, ref: > PR.id]
     value_int int
@@ -135,12 +104,10 @@ Table product_params {
 Table prices as PC {
     id int [pk, increment, not null, unique]
     dttmcr timestamptz [not null]
-    dttmup timestamptz
-    dttmcl timestamptz
     product_id int [not null, ref: > P.id]
     unit_id int [not null, ref: > UN.id]
     unit_amount int [not null]
-    weight numeric 
+    mass numeric 
     price numeric [not null]
 }
 
@@ -148,18 +115,13 @@ Table prices as PC {
 Table pricelists as PL {
     id int [pk, increment, not null, unique]
     dttmcr timestamptz [not null]
-    dttmup timestamptz
-    dttmcl timestamptz
     actuality_date date [not null]
     manager_id int [not null, ref: > U.id]
 }
 
 // Прайлистс_товары
 Table pricelist_products as PP {
-    id bigint [pk, increment, not null, unique]
     dttmcr timestamptz [not null]
-    dttmup timestamptz
-    dttmcl timestamptz
     pricelist_id int [not null, ref: > PL.id]
     product_id int [not null, ref: > P.id]
     price_id int [not null, ref: > PC.id]
@@ -169,8 +131,6 @@ Table pricelist_products as PP {
 Table pay_methods as PM {
     id int [pk, increment, not null, unique]
     dttmcr timestamptz [not null]
-    dttmup timestamptz
-    dttmcl timestamptz
     pay_method text [not null, unique]
 }
 
@@ -178,17 +138,13 @@ Table pay_methods as PM {
 Table ship_methods as SM {
     id int [pk, increment, not null, unique]
     dttmcr timestamptz [not null]
-    dttmup timestamptz
-    dttmcl timestamptz
     ship_method text [not null, unique]
 }
 
 // Заказы
 Table orders as O {
-    id bigint [pk, increment, not null, unique]
+    id int [pk, increment, not null, unique]
     dttmcr timestamptz [not null]
-    dttmup timestamptz
-    dttmcl timestamptz
     user_id int [not null, ref: > U.id]
     order_sum numeric [not null]
     pay_method_id int [not null, ref: > PM.id]
@@ -199,12 +155,10 @@ Table orders as O {
 // Товары в заказе
 Table order_items {
     dttmcr timestamptz [not null]
-    dttmup timestamptz
-    dttmcl timestamptz
     order_id bigint [not null, ref: > O.id]
     product_id int [not null, ref: > P.id]
     price_id int [not null, ref: > PC.id]
-    quantity int [not null, default: 1]
+    amount int [not null, default: 1]
 } 
 
 // Смена статусов заказов
@@ -219,8 +173,6 @@ Table order_history as OH {
 Table shipping as SH {
     id int [pk, increment, not null, unique]
     dttmcr timestamptz [not null]
-    dttmup timestamptz
-    dttmcl timestamptz
     order_id bigint [not null, ref: > O.id]
     ship_method_id int [not null, ref: > SM.id]
     ship_date date 
@@ -232,20 +184,33 @@ Table shipping as SH {
 Table deliveries as D {
     id int [pk, increment, not null, unique]
     dttmcr timestamptz [not null]
-    dttmup timestamptz
-    dttmcl timestamptz
-    operation smallint [not null]
+    operation int [not null]
     supplier_id int [not null, ref: > S.id]
 }
 
 // Поставка-товары
 Table delivery_items as DI {
-    id bigint [pk, increment, not null, unique]
     dttmcr timestamptz [not null]
-    dttmup timestamptz
-    dttmcl timestamptz
     delivery_id int [not null, ref: > D.id]
     product_id int [not null, ref: > P.id]
     price_id int [not null, ref: > PC.id]
     amount int [not null]
+}
+
+// Адреса
+Table adresses as AD {
+    id int [pk, increment, not null, unique]
+    dttmcr timestamptz [not null]
+    object_type int [not null]
+    object_id int [not null]
+    address_full_str text
+    postal_code text
+    country text
+    region text
+    settlement_type text
+    settlement text
+    street text
+    house text
+    block_val text
+    flat text
 }
