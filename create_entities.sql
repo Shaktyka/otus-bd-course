@@ -78,7 +78,6 @@ CREATE TABLE IF NOT EXISTS users
     birth_date date,
     email text UNIQUE NOT NULL,
     password_hash text NOT NULL,
-    address_full jsonb,
     phone text NOT NULL,
     gender smallint DEFAULT 1 CHECK (gender IN (1, 2)),
     status_id int NOT NULL REFERENCES statuses (id)
@@ -105,6 +104,7 @@ CREATE TABLE IF NOT EXISTS adresses
     dttmcr timestamptz NOT NULL DEFAULT now(),
     object_type smallint DEFAULT 1 CHECK (object_type IN (1, 2, 3)),
     object_id int,
+    address_object jsonb,
     address_full_str text,
     postal_code text,
     country text,
@@ -261,14 +261,15 @@ CREATE TABLE IF NOT EXISTS parameters
 /*
     Ограничения:
 
-    1) Поля product_id и parameter_id являются FK на соответствующие таблицы. Индекс создаётся автоматически.
+    1) поля product_id и parameter_id являются FK на соответствующие таблицы. Индекс создаётся автоматически,
+    2) поля для задания значения характеристики будут проверяться триггером.
 */
 CREATE TABLE IF NOT EXISTS product_params
 (
     dttmcr timestamptz NOT NULL DEFAULT now(),
     product_id int NOT NULL REFERENCES products (id),
     parameter_id int NOT NULL REFERENCES parameters (id),
-    value_int int CHECK (value_int IS NOT NULL and value_text IS NULL and value_numeric IS NULL and value_int_arr IS NULL and value_text_arr IS NULL and value_jsonb IS NULL),
+    value_int int,
     value_text text,
     value_numeric numeric,
     value_int_arr int[],
@@ -422,7 +423,8 @@ CREATE TABLE IF NOT EXISTS ship_methods
 /*
     Ограничения:
 
-    1) поля user_id, pay_method_id, ship_method_id и last_status_id являются FK на соответствующие таблицы, поэтому не должны содержать NULL-значения,
+    1) поля user_id, pay_method_id, ship_method_id, address_id и last_status_id 
+    являются FK на соответствующие таблицы, поэтому не должны содержать NULL-значения,
     2) поле order_sum м/б больше 0, что проверяется ограничением CHECK.
 */
 CREATE TABLE IF NOT EXISTS orders
@@ -433,6 +435,7 @@ CREATE TABLE IF NOT EXISTS orders
     order_sum numeric NOT NULL CHECK (order_sum > 0),
     pay_method_id int NOT NULL REFERENCES pay_methods(id),
     ship_method_id int NOT NULL REFERENCES ship_methods(id),
+    address_id int NOT NULL REFERENCES adresses(id),
     last_status_id int NOT NULL REFERENCES statuses(id)
 );
 
@@ -440,6 +443,7 @@ CREATE TABLE IF NOT EXISTS orders
 CREATE INDEX ON orders (user_id);
 CREATE INDEX ON orders (pay_method_id);
 CREATE INDEX ON orders (ship_method_id);
+CREATE INDEX ON orders (address_id);
 CREATE INDEX ON orders (last_status_id);
 
 -- Таблица "Товары в заказе"
@@ -493,14 +497,16 @@ CREATE INDEX ON shipping (status_id);
 /*
     Ограничения:
 
-    1) поля order_id и status_id являются FK на соответствующие таблицы
+    1) поля order_id и status_id являются FK на соответствующие таблицы,
+    2) dttmend - дата завершения текущего статуса м/б NULL или >= даты присвоения статуса, поэто добавлено ограничение.
 */
 CREATE TABLE IF NOT EXISTS order_history
 (
     id bigserial NOT NULL UNIQUE PRIMARY KEY,
     dttmcr timestamptz NOT NULL DEFAULT now(),
     order_id bigint NOT NULL REFERENCES orders(id),
-    status_id int NOT NULL REFERENCES statuses(id)
+    status_id int NOT NULL REFERENCES statuses(id),
+    dttmend timestamptz CHECK (dttmend IS NULL or dttmend >= dttmcr)
 );
 
 -- Индексы на поля FK:
