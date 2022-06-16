@@ -72,4 +72,4 @@
 
 https://dbdiagram.io/d/62a36b9892b33b4f513fcf9a
 
-Также можно посмотреть [скриншот](/images/scheme_13-06-2022.png) схемы БД.
+Также можно посмотреть [скриншот](https://prnt.sc/Tw_JKpoGbim9) схемы БД.

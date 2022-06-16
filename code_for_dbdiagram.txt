@@ -9,7 +9,6 @@ Table users as U {
     birth_date date
     email text [unique, not null]
     password_hash text [not null]
-    address_full jsonb
     phone text
     gender int
     status_id int
@@ -28,7 +27,6 @@ Table manufacturers as M {
     id int [pk, increment, not null, unique]
     dttmcr timestamptz [not null]
     manufacturer text [not null]
-    address_full jsonb
     logo_link text [not null]
     site_link text
 }
@@ -39,7 +37,6 @@ Table suppliers as S {
     dttmcr timestamptz [not null]
     supplier text [not null, unique]
     company_phone text
-    address_full jsonb [not null]
     manager_id int [ref: > U.id]
     site_link text
 }
