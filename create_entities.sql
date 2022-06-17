@@ -547,6 +547,7 @@ CREATE TABLE IF NOT EXISTS order_history
     dttmend timestamptz CHECK (dttmend IS NULL or dttmend >= dttmcr)
 );
 
--- Индексы на поля FK:
-CREATE INDEX ON order_history (order_id);
-CREATE INDEX ON order_history (status_id);
+-- При построении отчётов будут джойны по полям с идентификаторами заказов и статусов. Имеет смысл сделать составной индекс на эти 2 поля:
+CREATE INDEX order_status_idx ON order_history (order_id, status_id);
+
+-- Поле с id заказа будет иметь большую кардинальность, поэтому в индексе оно первое. 
