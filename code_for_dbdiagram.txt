@@ -1,3 +1,9 @@
+// Типы сущностей
+Table object_types as OT {
+    id int [pk, increment, not null, unique]
+    dttmcr timestamptz [not null]
+    type text
+}
 
 // Пользователи
 Table users as U {
@@ -163,7 +169,7 @@ Table statuses_history as SY {
     id bigint [pk, increment, not null, unique]    
     dttmcr timestamptz [not null]
     dttmend timestamptz
-    object_type [not null]
+    object_type int [not null]
     object_id int [not null]
     status_id int [not null, ref: > SS.id]
 }
@@ -200,7 +206,7 @@ Table delivery_items as DI {
 Table adresses as AD {
     id int [pk, increment, not null, unique]
     dttmcr timestamptz [not null]
-    object_type smallint [not null]
+    object_type int [not null]
     object_id int [not null]
     address_full_str text
     postal_code text

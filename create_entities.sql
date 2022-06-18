@@ -107,18 +107,31 @@ CREATE INDEX ON users (phone);
 -- Индекс на поиск по фамилии и имени (их чаще всего заполняют):
 CREATE INDEX user_names ON users ((last_name || ' ' || first_name));
 
+-- Таблица "Типы сущностей"
+/*
+    Ограничения:
+    1) поле с названием типа должно быть уникальным и должно быть заполнено, поэтому добавляются ограничение NOT NULL и UNIQUE
+*/
+CREATE TABLE IF NOT EXISTS object_types (
+    id serial NOT NULL UNIQUE PRIMARY KEY,
+    dttmcr timestamptz NOT NULL DEFAULT now(),
+    object_type text NOT NULL UNIQUE
+);
+-- Дополнительных индексов здесь нет.
+
 -- Таблица "Адреса"
 /*
     Ограничения:
 
-    - для поля object_type устанавливается дефолтное значение с проверкой на выбор одного из 3х значений: 1 - пользователи, 2 - производители, 3 - поставщики,
+    - поле object_type - FK на справочник object_types,
+    - для этого поля целесообразно установить дефолтное значение на тип "Пользователь", т.к. в основном адреса будут относиться к пользователям,
     - поле object_id не является FK на определённую таблицу, это идентификатор записи в соотв-щей таблице по типу в object_type.
 */
 CREATE TABLE IF NOT EXISTS adresses
 (
     id serial NOT NULL UNIQUE PRIMARY KEY,
     dttmcr timestamptz NOT NULL DEFAULT now(),
-    object_type smallint DEFAULT 1 CHECK (object_type IN (1, 2, 3)),
+    object_type int NOT NULL REFERENCES object_types(id),
     object_id int,
     address_object jsonb,
     address_full_str text,
@@ -135,7 +148,6 @@ CREATE TABLE IF NOT EXISTS adresses
 
 -- При выводе адресов будет поиск по object_type и object_id, поэтому для поиска нужно сделать индекс, но не уникальный, т.к. адресов может быть много:
 CREATE INDEX type_id_connect_idx ON (object_id, object_type);
--- Возможна также реализация ссылок на адреса с помощью массива id в соответствующих таблицах, но это немного ограничивает возможности. Здесь понадобится другой тип индекса.
 
 -- Для поиска по некоторым составным частям адресов имеет смысл сделать отдельные индексы (наиболее вероятен поиск):
 CREATE INDEX ON adresses (postal_code);
@@ -531,7 +543,7 @@ CREATE INDEX ON shipping (ship_method_id);
 /*
     Ограничения:
 
-    1) поле object_type - тип сущности, чтобы отличать записи в таблице и избежать путаницы идентификаторов; содержит ограничение на возможные типы,
+    1) поле object_type - тип сущности, чтобы отличать записи в таблице и избежать путаницы идентификаторов,
     1) поле status_id является FK на соответствующую таблицу,
     2) dttmend - дата завершения текущего статуса, м/б NULL или >= даты присвоения статуса, поэтому добавлено ограничение.
 */
@@ -540,12 +552,12 @@ CREATE TABLE IF NOT EXISTS statuses_history
     id bigserial NOT NULL UNIQUE PRIMARY KEY,
     dttmcr timestamptz NOT NULL DEFAULT now(),
     dttmend timestamptz CHECK (dttmend IS NULL or dttmend >= dttmcr)
-    object_type int NOT NULL CHECK (object_type in (1,2,3))
+    object_type int NOT NULL REFERENCES object_types(id),
     object_id int NOT NULL,
     status_id int NOT NULL REFERENCES statuses(id)
 );
 
 -- При построении отчётов будут джойны по полям с идентификаторами записей и статусов. 
 -- Поэтому имеет смысл сделать составной индекс на 3 поля.
--- При этом наибольшей кардинальностью будет обладать поле object_id, затем status_id.
-CREATE INDEX object_type_status_idx ON statuses_history (object_id, status_id, type_id);
+-- При этом наибольшей кардинальностью будет обладать поле object_id, затем status_id и меньше всего - type_id.
+CREATE INDEX object_status_type_idx ON statuses_history (object_id, status_id, type_id);
