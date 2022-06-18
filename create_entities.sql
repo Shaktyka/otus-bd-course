@@ -250,19 +250,15 @@ CREATE TABLE IF NOT EXISTS products
     status_id int NOT NULL REFERENCES statuses(id)
 );
 
--- Продавцы могут часто искать по артикулу (vendor_code), поэтому по этому полю можно сделать индекс:
-CREATE INDEX ON products (vendor_code);
+-- Запросы могут часто включать поиск по артикулу (vendor_code), названию и категории, поэтому по этим полям можно сделать составной индекс:
+CREATE INDEX vendcode_product_category_idx ON products (vendor_code, product, category_id);
 
--- Индексы на поля с FK, т.к. они будут участвовать в JOIN-запросах для выборки данных и отчётов + по ним будут искать товары:
-CREATE INDEX ON products (manufacturer_id);
-CREATE INDEX ON products (supplier_id);
-CREATE INDEX ON products (category_id);
+-- Также можно создать составной индекс на поля производителя и поставщика:
+CREATE INDEX supplier_manufacturer_idx ON products (supplier_id, manufacturer_id);
+-- Поле supplier_id имеет большую кардинальность, поэтому идёт первым
+
+-- Также создадим индекс на поле FK по статусу заказа:
 CREATE INDEX ON products (status_id);
-
--- Функциональный индекс на название продукта, т.к. на сайте будет поиск по названию товаров:
-CREATE INDEX ON products (LOWER(product));
-
--- Для сборки списка товаров с ценами и характеристиками будут использоваться джойны по полям с FK, на них все добавлены индексы.
 
 -- Таблица "Характеристики товаров"
 /*
@@ -531,23 +527,25 @@ CREATE INDEX ON shipping (ship_method_id);
 -- ПРОЦЕССЫ
 -------------------------
 
--- Таблица "История заказов"
+-- Таблица "История смены статусов"
 /*
     Ограничения:
 
-    1) поля order_id и status_id являются FK на соответствующие таблицы,
-    2) dttmend - дата завершения текущего статуса м/б NULL или >= даты присвоения статуса, поэто добавлено ограничение.
+    1) поле object_type - тип сущности, чтобы отличать записи в таблице и избежать путаницы идентификаторов; содержит ограничение на возможные типы,
+    1) поле status_id является FK на соответствующую таблицу,
+    2) dttmend - дата завершения текущего статуса, м/б NULL или >= даты присвоения статуса, поэтому добавлено ограничение.
 */
-CREATE TABLE IF NOT EXISTS order_history
+CREATE TABLE IF NOT EXISTS statuses_history
 (
     id bigserial NOT NULL UNIQUE PRIMARY KEY,
     dttmcr timestamptz NOT NULL DEFAULT now(),
-    order_id bigint NOT NULL REFERENCES orders(id),
-    status_id int NOT NULL REFERENCES statuses(id),
     dttmend timestamptz CHECK (dttmend IS NULL or dttmend >= dttmcr)
+    object_type int NOT NULL CHECK (object_type in (1,2,3))
+    object_id int NOT NULL,
+    status_id int NOT NULL REFERENCES statuses(id)
 );
 
--- При построении отчётов будут джойны по полям с идентификаторами заказов и статусов. Имеет смысл сделать составной индекс на эти 2 поля:
-CREATE INDEX order_status_idx ON order_history (order_id, status_id);
-
--- Поле с id заказа будет иметь большую кардинальность, поэтому в индексе оно первое. 
+-- При построении отчётов будут джойны по полям с идентификаторами записей и статусов. 
+-- Поэтому имеет смысл сделать составной индекс на 3 поля.
+-- При этом наибольшей кардинальностью будет обладать поле object_id, затем status_id.
+CREATE INDEX object_type_status_idx ON statuses_history (object_id, status_id, type_id);
