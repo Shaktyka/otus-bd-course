@@ -66,7 +66,7 @@ CREATE INDEX ON statuses (status_group_id);
     3) password_hash:
     - поле не должно содержать NULL-значения
     4) пол пользователя:
-    - может быть только одним из 2 значений, по умолчанию (DEFAULT) выбрано 1 (мужской, 2 - женский)
+    - может быть только одним из 2 значений, по умолчанию (DEFAULT) выбрано 1 (мужской, 2 - женский), поле NOT NULL
     5) phone:
     - обязательное поле, не должно быть пустым.
 */
@@ -82,7 +82,7 @@ CREATE TABLE IF NOT EXISTS users
     email text UNIQUE NOT NULL,
     password_hash text NOT NULL,
     phone text NOT NULL,
-    gender smallint DEFAULT 1 CHECK (gender IN (1, 2)),
+    gender smallint NOT NULL DEFAULT 1 CHECK (gender IN (1, 2)),
     status_id int NOT NULL REFERENCES statuses (id)
 );
 
@@ -426,7 +426,7 @@ CREATE INDEX ON deliveries (supplier_id);
     Ограничения:
 
     1) поля delivery_id, product_id, price_id должны быть уникальными в пределах всей таблицы, поэтому становятся первичным ключом; на них автоматически создастся индекс,
-    2) поле количества amount должно быть больше 0.
+    2) поле количества amount должно быть больше 0, не должно быть NULL, по умолчанию значение 1.
 */
 CREATE TABLE IF NOT EXISTS delivery_items
 (
@@ -434,7 +434,7 @@ CREATE TABLE IF NOT EXISTS delivery_items
     delivery_id int NOT NULL REFERENCES deliveries(id),
     product_id int NOT NULL REFERENCES products(id),
     price_id int NOT NULL REFERENCES prices(id),
-    amount int CHECK (amount > 0),
+    amount int NOT NULL DEFAULT 1 CHECK (amount > 0),
     PRIMARY KEY (delivery_id, product_id, price_id)
 );
 
@@ -495,7 +495,7 @@ CREATE INDEX ON orders (last_status_id);
     Ограничения:
 
     1) поля order_id, product_id, price_id д/б уникальными в пределах таблицы, поэтому становятся первичным ключом
-    2) кол-во позиций не может быть NULL, поэтому добавляются ограничения NOT NULL и CHECK.
+    2) кол-во позиций amount не может быть NULL, поэтому добавляются ограничения NOT NULL и CHECK, а также значение по умолчанию 1.
 */
 CREATE TABLE IF NOT EXISTS order_items
 (
