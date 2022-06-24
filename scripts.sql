@@ -56,6 +56,7 @@ SET search_path TO justcoffee;
 
 -- Таблица "Группы статусов"
 DROP TABLE IF EXISTS status_groups;
+
 CREATE TABLE IF NOT EXISTS justcoffee.status_groups (
     id serial NOT NULL UNIQUE PRIMARY KEY,
     dttmcr timestamptz NOT NULL DEFAULT now(),
@@ -68,6 +69,7 @@ COMMENT ON TABLE status_groups IS 'Группы статусов';
 
 -- Таблица "Статусы"
 DROP TABLE IF EXISTS statuses;
+
 CREATE TABLE IF NOT EXISTS justcoffee.statuses
 (
     id serial NOT NULL UNIQUE PRIMARY KEY,
@@ -85,6 +87,7 @@ CREATE INDEX ON statuses (status_group_id);
 
 -- Таблица "Пользователи"
 DROP TABLE IF EXISTS users;
+
 CREATE TABLE IF NOT EXISTS justcoffee.users
 (
     id serial NOT NULL UNIQUE PRIMARY KEY,
@@ -112,6 +115,7 @@ CREATE INDEX user_names ON users ((last_name || ' ' || first_name));
 
 -- Таблица "Типы сущностей"
 DROP TABLE IF EXISTS object_types;
+
 CREATE TABLE IF NOT EXISTS justcoffee.object_types (
     id serial NOT NULL UNIQUE PRIMARY KEY,
     dttmcr timestamptz NOT NULL DEFAULT now(),
@@ -124,6 +128,7 @@ COMMENT ON TABLE object_types IS 'Типы сущностей';
 
 -- Таблица "Адреса"
 DROP TABLE IF EXISTS adresses;
+
 CREATE TABLE IF NOT EXISTS justcoffee.adresses
 (
     id serial NOT NULL UNIQUE PRIMARY KEY,
@@ -148,7 +153,7 @@ ALTER TABLE adresses OWNER to justcoffee;
 COMMENT ON TABLE adresses IS 'Адреса';
 
 -- Индексы
-CREATE INDEX type_id_connect_idx ON (object_id, object_type);
+CREATE INDEX type_id_connect_idx ON adresses (object_id, object_type);
 CREATE INDEX ON adresses (postal_code);
 CREATE INDEX ON adresses (country);
 CREATE INDEX ON adresses (region);
@@ -158,6 +163,7 @@ CREATE INDEX ON adresses (region);
 
 -- Таблица "Производители"
 DROP TABLE IF EXISTS manufacturers;
+
 CREATE TABLE IF NOT EXISTS justcoffee.manufacturers
 (
     id serial NOT NULL UNIQUE PRIMARY KEY,
@@ -176,6 +182,7 @@ CREATE INDEX ON manufacturers (manufacturer);
 
 -- Таблица "Поставщики"
 DROP TABLE IF EXISTS suppliers;
+
 CREATE TABLE IF NOT EXISTS justcoffee.suppliers
 (
     id serial NOT NULL UNIQUE PRIMARY KEY,
@@ -196,6 +203,7 @@ CREATE INDEX ON suppliers (manager_id);
 
 -- Таблица "Категории товаров"
 DROP TABLE IF EXISTS categories;
+
 CREATE TABLE IF NOT EXISTS justcoffee.categories
 (
     id serial NOT NULL UNIQUE PRIMARY KEY,
@@ -214,6 +222,7 @@ CREATE INDEX ON categories (category);
 
 -- Таблица "Единицы измеренения"
 DROP TABLE IF EXISTS units;
+
 CREATE TABLE IF NOT EXISTS justcoffee.units
 (
     id serial NOT NULL UNIQUE PRIMARY KEY,
@@ -227,6 +236,7 @@ COMMENT ON TABLE units IS 'Единицы измеренения';
 
 -- Таблица "Товары"
 DROP TABLE IF EXISTS products;
+
 CREATE TABLE IF NOT EXISTS justcoffee.products
 (
     id serial NOT NULL UNIQUE PRIMARY KEY,
@@ -265,6 +275,7 @@ COMMENT ON TABLE parameters IS 'Характеристики товаров';
 
 -- Таблица "Товар_характеристика"
 DROP TABLE IF EXISTS product_params;
+
 CREATE TABLE IF NOT EXISTS justcoffee.product_params
 (
     dttmcr timestamptz NOT NULL DEFAULT now(),
@@ -288,6 +299,7 @@ COMMENT ON TABLE parameters IS 'Связь товара с характерис�
 
 -- Таблица "Способ оплаты"
 DROP TABLE IF EXISTS pay_methods;
+
 CREATE TABLE IF NOT EXISTS justcoffee.pay_methods
 (
     id serial NOT NULL UNIQUE PRIMARY KEY,
@@ -301,6 +313,7 @@ COMMENT ON TABLE pay_methods IS 'Способ оплаты';
 
 -- Таблица "Цены"
 DROP TABLE IF EXISTS prices;
+
 CREATE TABLE IF NOT EXISTS justcoffee.prices
 (
     id serial NOT NULL UNIQUE PRIMARY KEY,
@@ -317,11 +330,12 @@ ALTER TABLE prices OWNER to justcoffee;
 COMMENT ON TABLE prices IS 'Цены';
 
 -- Индексы: 
-CREATE INDEX prices (product_id);
-CREATE INDEX prices (unit_id);
+CREATE INDEX ON prices (product_id);
+CREATE INDEX ON prices (unit_id);
 
 -- Таблица "Прайслисты"
 DROP TABLE IF EXISTS pricelists;
+
 CREATE TABLE IF NOT EXISTS justcoffee.pricelists
 (
     id serial NOT NULL UNIQUE PRIMARY KEY,
@@ -340,6 +354,7 @@ CREATE INDEX ON pricelists (manаger_id);
 
 -- Таблица "Прайслист_товары"
 DROP TABLE IF EXISTS pricelist_products;
+
 CREATE TABLE IF NOT EXISTS justcoffee.pricelist_products
 (
     dttmcr timestamptz NOT NULL DEFAULT now(),
@@ -358,6 +373,7 @@ COMMENT ON TABLE pricelist_products IS 'Связь прайслистов с т�
 
 -- Таблица "Поставки"
 DROP TABLE IF EXISTS deliveries;
+
 CREATE TABLE IF NOT EXISTS justcoffee.deliveries
 (
     id serial NOT NULL UNIQUE PRIMARY KEY,
@@ -375,6 +391,7 @@ CREATE INDEX ON deliveries (supplier_id);
 
 -- Таблица "Товары в поставке"
 DROP TABLE IF EXISTS delivery_items;
+
 CREATE TABLE IF NOT EXISTS justcoffee.delivery_items
 (
     dttmcr timestamptz NOT NULL DEFAULT now(),
@@ -394,6 +411,7 @@ COMMENT ON TABLE delivery_items IS 'Товары в поставке';
 
 -- Таблица "Способ доставки"
 DROP TABLE IF EXISTS ship_methods;
+
 CREATE TABLE IF NOT EXISTS justcoffee.ship_methods
 (
     id serial NOT NULL UNIQUE PRIMARY KEY,
@@ -407,6 +425,7 @@ COMMENT ON TABLE ship_methods IS 'Способ доставки';
 
 -- Таблица "Заказы"
 DROP TABLE IF EXISTS orders;
+
 CREATE TABLE IF NOT EXISTS justcoffee.orders
 (
     id serial NOT NULL UNIQUE PRIMARY KEY,
@@ -432,6 +451,7 @@ CREATE INDEX ON orders (last_status_id);
 
 -- Таблица "Товары в заказе"
 DROP TABLE IF EXISTS order_items;
+
 CREATE TABLE IF NOT EXISTS justcoffee.order_items
 (
     dttmcr timestamptz NOT NULL DEFAULT now(),
@@ -448,6 +468,7 @@ COMMENT ON TABLE order_items IS 'Товары в заказе';
 
 -- Таблица "Доставка"
 DROP TABLE IF EXISTS shipping;
+
 CREATE TABLE IF NOT EXISTS justcoffee.shipping
 (
     id serial NOT NULL UNIQUE PRIMARY KEY,
@@ -472,11 +493,12 @@ CREATE INDEX ON shipping (ship_method_id);
 
 -- Таблица "История смены статусов"
 DROP TABLE IF EXISTS statuses_history;
+
 CREATE TABLE IF NOT EXISTS justcoffee.statuses_history
 (
     id bigserial NOT NULL UNIQUE PRIMARY KEY,
     dttmcr timestamptz NOT NULL DEFAULT now(),
-    dttmend timestamptz CHECK (dttmend IS NULL or dttmend >= dttmcr)
+    dttmend timestamptz CHECK (dttmend IS NULL or dttmend >= dttmcr),
     object_type int NOT NULL REFERENCES object_types(id),
     object_id int NOT NULL,
     status_id int NOT NULL REFERENCES statuses(id)
@@ -487,4 +509,4 @@ ALTER TABLE statuses_history OWNER to justcoffee;
 COMMENT ON TABLE statuses_history IS 'История смены статусов';
 
 -- Индексы
-CREATE INDEX object_status_type_idx ON statuses_history (object_id, status_id, type_id);
+CREATE INDEX object_status_type_idx ON statuses_history (object_id, status_id, object_type);
