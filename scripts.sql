@@ -55,6 +55,7 @@ SET search_path TO justcoffee;
 -- ОБЩИЕ СУЩНОСТИ
 
 -- Таблица "Группы статусов"
+DROP TABLE IF EXISTS status_groups;
 CREATE TABLE IF NOT EXISTS justcoffee.status_groups (
     id serial NOT NULL UNIQUE PRIMARY KEY,
     dttmcr timestamptz NOT NULL DEFAULT now(),
@@ -66,6 +67,7 @@ ALTER TABLE status_groups OWNER to justcoffee;
 COMMENT ON TABLE status_groups IS 'Группы статусов';
 
 -- Таблица "Статусы"
+DROP TABLE IF EXISTS statuses;
 CREATE TABLE IF NOT EXISTS justcoffee.statuses
 (
     id serial NOT NULL UNIQUE PRIMARY KEY,
@@ -82,6 +84,7 @@ COMMENT ON TABLE statuses IS 'Статусы';
 CREATE INDEX ON statuses (status_group_id);
 
 -- Таблица "Пользователи"
+DROP TABLE IF EXISTS users;
 CREATE TABLE IF NOT EXISTS justcoffee.users
 (
     id serial NOT NULL UNIQUE PRIMARY KEY,
@@ -108,6 +111,7 @@ CREATE INDEX ON users (phone);
 CREATE INDEX user_names ON users ((last_name || ' ' || first_name));
 
 -- Таблица "Типы сущностей"
+DROP TABLE IF EXISTS object_types;
 CREATE TABLE IF NOT EXISTS justcoffee.object_types (
     id serial NOT NULL UNIQUE PRIMARY KEY,
     dttmcr timestamptz NOT NULL DEFAULT now(),
@@ -119,6 +123,7 @@ ALTER TABLE object_types OWNER to justcoffee;
 COMMENT ON TABLE object_types IS 'Типы сущностей';
 
 -- Таблица "Адреса"
+DROP TABLE IF EXISTS adresses;
 CREATE TABLE IF NOT EXISTS justcoffee.adresses
 (
     id serial NOT NULL UNIQUE PRIMARY KEY,
@@ -152,6 +157,7 @@ CREATE INDEX ON adresses (region);
 -- ТОВАРЫ (СКЛАД)
 
 -- Таблица "Производители"
+DROP TABLE IF EXISTS manufacturers;
 CREATE TABLE IF NOT EXISTS justcoffee.manufacturers
 (
     id serial NOT NULL UNIQUE PRIMARY KEY,
@@ -169,7 +175,7 @@ COMMENT ON TABLE status_groups IS 'Производители';
 CREATE INDEX ON manufacturers (manufacturer);
 
 -- Таблица "Поставщики"
-
+DROP TABLE IF EXISTS suppliers;
 CREATE TABLE IF NOT EXISTS justcoffee.suppliers
 (
     id serial NOT NULL UNIQUE PRIMARY KEY,
@@ -189,6 +195,7 @@ CREATE INDEX ON suppliers (supplier);
 CREATE INDEX ON suppliers (manager_id);
 
 -- Таблица "Категории товаров"
+DROP TABLE IF EXISTS categories;
 CREATE TABLE IF NOT EXISTS justcoffee.categories
 (
     id serial NOT NULL UNIQUE PRIMARY KEY,
@@ -206,6 +213,7 @@ CREATE INDEX ON categories (parent_id);
 CREATE INDEX ON categories (category);
 
 -- Таблица "Единицы измеренения"
+DROP TABLE IF EXISTS units;
 CREATE TABLE IF NOT EXISTS justcoffee.units
 (
     id serial NOT NULL UNIQUE PRIMARY KEY,
@@ -218,6 +226,7 @@ ALTER TABLE units OWNER to justcoffee;
 COMMENT ON TABLE units IS 'Единицы измеренения';
 
 -- Таблица "Товары"
+DROP TABLE IF EXISTS products;
 CREATE TABLE IF NOT EXISTS justcoffee.products
 (
     id serial NOT NULL UNIQUE PRIMARY KEY,
@@ -242,6 +251,7 @@ CREATE INDEX supplier_manufacturer_idx ON products (supplier_id, manufacturer_id
 CREATE INDEX ON products (status_id);
 
 -- Таблица "Характеристики товаров"
+DROP TABLE IF EXISTS parameters;
 CREATE TABLE IF NOT EXISTS justcoffee.parameters
 (
     id serial NOT NULL UNIQUE PRIMARY KEY,
@@ -254,6 +264,7 @@ ALTER TABLE parameters OWNER to justcoffee;
 COMMENT ON TABLE parameters IS 'Характеристики товаров';
 
 -- Таблица "Товар_характеристика"
+DROP TABLE IF EXISTS product_params;
 CREATE TABLE IF NOT EXISTS justcoffee.product_params
 (
     dttmcr timestamptz NOT NULL DEFAULT now(),
@@ -276,6 +287,7 @@ COMMENT ON TABLE parameters IS 'Связь товара с характерис�
 -- ЦЕНЫ
 
 -- Таблица "Способ оплаты"
+DROP TABLE IF EXISTS pay_methods;
 CREATE TABLE IF NOT EXISTS justcoffee.pay_methods
 (
     id serial NOT NULL UNIQUE PRIMARY KEY,
@@ -288,6 +300,7 @@ ALTER TABLE pay_methods OWNER to justcoffee;
 COMMENT ON TABLE pay_methods IS 'Способ оплаты';
 
 -- Таблица "Цены"
+DROP TABLE IF EXISTS prices;
 CREATE TABLE IF NOT EXISTS justcoffee.prices
 (
     id serial NOT NULL UNIQUE PRIMARY KEY,
@@ -308,6 +321,7 @@ CREATE INDEX prices (product_id);
 CREATE INDEX prices (unit_id);
 
 -- Таблица "Прайслисты"
+DROP TABLE IF EXISTS pricelists;
 CREATE TABLE IF NOT EXISTS justcoffee.pricelists
 (
     id serial NOT NULL UNIQUE PRIMARY KEY,
@@ -325,6 +339,7 @@ CREATE INDEX ON pricelists (actuality_date);
 CREATE INDEX ON pricelists (manаger_id);
 
 -- Таблица "Прайслист_товары"
+DROP TABLE IF EXISTS pricelist_products;
 CREATE TABLE IF NOT EXISTS justcoffee.pricelist_products
 (
     dttmcr timestamptz NOT NULL DEFAULT now(),
@@ -342,6 +357,7 @@ COMMENT ON TABLE pricelist_products IS 'Связь прайслистов с т�
 -- ПОСТАВКИ ТОВАРОВ
 
 -- Таблица "Поставки"
+DROP TABLE IF EXISTS deliveries;
 CREATE TABLE IF NOT EXISTS justcoffee.deliveries
 (
     id serial NOT NULL UNIQUE PRIMARY KEY,
@@ -358,6 +374,7 @@ COMMENT ON TABLE deliveries IS 'Поставки';
 CREATE INDEX ON deliveries (supplier_id);
 
 -- Таблица "Товары в поставке"
+DROP TABLE IF EXISTS delivery_items;
 CREATE TABLE IF NOT EXISTS justcoffee.delivery_items
 (
     dttmcr timestamptz NOT NULL DEFAULT now(),
@@ -376,6 +393,7 @@ COMMENT ON TABLE delivery_items IS 'Товары в поставке';
 -- ЗАКАЗЫ ПОЛЬЗОВАТЕЛЕЙ И ДОСТАВКА
 
 -- Таблица "Способ доставки"
+DROP TABLE IF EXISTS ship_methods;
 CREATE TABLE IF NOT EXISTS justcoffee.ship_methods
 (
     id serial NOT NULL UNIQUE PRIMARY KEY,
@@ -388,6 +406,7 @@ ALTER TABLE ship_methods OWNER to justcoffee;
 COMMENT ON TABLE ship_methods IS 'Способ доставки';
 
 -- Таблица "Заказы"
+DROP TABLE IF EXISTS orders;
 CREATE TABLE IF NOT EXISTS justcoffee.orders
 (
     id serial NOT NULL UNIQUE PRIMARY KEY,
@@ -412,6 +431,7 @@ CREATE INDEX ON orders (address_id);
 CREATE INDEX ON orders (last_status_id);
 
 -- Таблица "Товары в заказе"
+DROP TABLE IF EXISTS order_items;
 CREATE TABLE IF NOT EXISTS justcoffee.order_items
 (
     dttmcr timestamptz NOT NULL DEFAULT now(),
@@ -427,6 +447,7 @@ ALTER TABLE order_items OWNER to justcoffee;
 COMMENT ON TABLE order_items IS 'Товары в заказе';
 
 -- Таблица "Доставка"
+DROP TABLE IF EXISTS shipping;
 CREATE TABLE IF NOT EXISTS justcoffee.shipping
 (
     id serial NOT NULL UNIQUE PRIMARY KEY,
@@ -450,6 +471,7 @@ CREATE INDEX ON shipping (ship_method_id);
 -- ПРОЦЕССЫ
 
 -- Таблица "История смены статусов"
+DROP TABLE IF EXISTS statuses_history;
 CREATE TABLE IF NOT EXISTS justcoffee.statuses_history
 (
     id bigserial NOT NULL UNIQUE PRIMARY KEY,
