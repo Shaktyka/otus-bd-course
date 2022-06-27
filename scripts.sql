@@ -490,3 +490,37 @@ COMMENT ON TABLE statuses_history IS 'История смены статусов
 
 -- Индексы
 CREATE INDEX object_status_type_idx ON statuses_history (object_id, status_id, object_type);
+
+------------------------------------------------
+-- СОЗДАЁТ ПРЕДСТАВЛЕНИЯ (views)
+------------------------------------------------
+
+-- Список неподтверждённых пользователей (по статусу):
+CREATE OR REPLACE VIEW dicts.v_unconfirmed_users AS
+    SELECT
+        u.id,
+        to_char(u.dttmcr, 'DD.MM.YYYY') as reg_date,
+        concat( u.last_name || ' ', u.first_name, ' ' || u.middle_name ) as fio,
+        u.email,
+        u.phone
+    FROM dicts.users AS u
+    WHERE u.status_id = 1  -- условно предполагаем, что статус такой
+    ORDER BY u.dttmcr DESC;
+
+
+-- Список новых доставок за сегодня:
+CREATE OR REPLACE VIEW orders.v_new_shipping AS
+    SELECT
+        s.id,
+        s.dttmcr,
+        s.order_id,
+        o.user_id,
+        sm.ship_method,
+        to_char(s.ship_date, 'DD.MM.YYYY') as ship_date,
+        s.ship_price
+    FROM orders.shipping AS s
+    INNER JOIN orders.orders AS o ON s.order_id = o.id
+    LEFT JOIN orders.ship_methods AS sm ON s.ship_method_id = s.id
+    WHERE 
+        s.dttmcr::date >= current_date
+        and s.status_id = 2; -- условно предполагаем, что статус такой
