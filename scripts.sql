@@ -72,6 +72,12 @@ CREATE SCHEMA warehouse;  -- склад
 CREATE SCHEMA orders;     -- заказы
 CREATE SCHEMA processes;  -- процессы
 
+-- Выдаёт права на схемы пользователю-владельцу:
+GRANT ALL ON SCHEMA warehouse TO justcoffee;
+GRANT ALL ON SCHEMA orders TO justcoffee;
+GRANT ALL ON SCHEMA dicts TO justcoffee;
+GRANT ALL ON SCHEMA processes TO justcoffee;
+
 ---------------------------------------
 -- ОБЩИЕ СУЩНОСТИ (схема dicts)
 ---------------------------------------
@@ -218,8 +224,8 @@ CREATE TABLE IF NOT EXISTS warehouse.categories
 (
     id serial NOT NULL UNIQUE PRIMARY KEY,
     dttmcr timestamptz NOT NULL DEFAULT now(),
-    parent_id int NOT NULL REFERENCES categories(id),
-    category text NOT NULL UNIQUE
+    category text NOT NULL UNIQUE,
+    slug text NOT NULL UNIQUE
 );
 
 ALTER TABLE categories OWNER to justcoffee;
@@ -227,8 +233,7 @@ ALTER TABLE categories OWNER to justcoffee;
 COMMENT ON TABLE categories IS 'Категории товаров';
 
 -- Индексы
-CREATE INDEX ON categories (parent_id);
-CREATE INDEX ON categories (category);
+CREATE INDEX ON categories (category, slug);
 
 -- Таблица "Единицы измеренения"
 CREATE TABLE IF NOT EXISTS warehouse.units
@@ -251,7 +256,6 @@ CREATE TABLE IF NOT EXISTS warehouse.products
     product text NOT NULL,
     manufacturer_id int NOT NULL REFERENCES manufacturers(id),
     supplier_id int NOT NULL REFERENCES suppliers(id),
-    category_id int NOT NULL REFERENCES categories(id),
     photos text[],
     description_text text,
     status_id int NOT NULL REFERENCES statuses(id)
@@ -262,9 +266,21 @@ ALTER TABLE products OWNER to justcoffee;
 COMMENT ON TABLE products IS 'Товары';
 
 -- Индексы
-CREATE INDEX vendcode_product_category_idx ON products (vendor_code, product, category_id);
+CREATE INDEX vendcode_product_idx ON products (vendor_code, product);
 CREATE INDEX supplier_manufacturer_idx ON products (supplier_id, manufacturer_id);
 CREATE INDEX ON products (status_id);
+
+-- Таблица "Продукт-категория"
+CREATE TABLE IF NOT EXISTS warehouse.product_category
+(
+    product_id int NOT NULL REFERENCES products(id),
+    category_id int NOT NULL REFERENCES categories(id),
+    PRIMARY KEY (product_id, category_id)
+);
+
+ALTER TABLE product_category OWNER to justcoffee;
+
+COMMENT ON TABLE product_category IS 'Связь товара и категории';
 
 -- Таблица "Характеристики товаров"
 CREATE TABLE IF NOT EXISTS warehouse.parameters

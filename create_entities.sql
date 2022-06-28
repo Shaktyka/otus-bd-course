@@ -208,15 +208,15 @@ CREATE INDEX ON suppliers (manager_id);
 /*
     Ограничения:
 
-    1) parent_id: FK на эту же таблицу для создания древовидных связей, 
-    2) category: название д/б уникальным.
+    1) category: название д/б уникальным,
+    2) slug: слаг д/б уникальным.
 */
 CREATE TABLE IF NOT EXISTS categories
 (
     id serial NOT NULL UNIQUE PRIMARY KEY,
     dttmcr timestamptz NOT NULL DEFAULT now(),
-    parent_id int NOT NULL REFERENCES categories(id),
-    category text NOT NULL UNIQUE
+    category text NOT NULL UNIQUE,
+    slug text NOT NULL UNIQUE
 );
 
 -- Индекс на столбец parent_id как FK:
@@ -245,8 +245,8 @@ CREATE TABLE IF NOT EXISTS units
 /*
     Ограничения:
 
-    1) NOT NULL на поля vendor_code, product, manufacturer_id, supplier_id, category_id, status_id, т.к. эти поля обязательно должны иметь значения,
-    2) поля manufacturer_id, supplier_id, category_id и status_id - являются внешними ключами с ограничением REFERENCES.
+    1) NOT NULL на поля vendor_code, product, manufacturer_id, supplier_id, status_id, т.к. эти поля обязательно должны иметь значения,
+    2) поля manufacturer_id, supplier_id и status_id - являются внешними ключами с ограничением REFERENCES.
 */
 CREATE TABLE IF NOT EXISTS products
 (
@@ -256,14 +256,13 @@ CREATE TABLE IF NOT EXISTS products
     product text NOT NULL,
     manufacturer_id int NOT NULL REFERENCES manufacturers(id),
     supplier_id int NOT NULL REFERENCES suppliers(id),
-    category_id int NOT NULL REFERENCES categories(id),
     photos text[],
     description_text text,
     status_id int NOT NULL REFERENCES statuses(id)
 );
 
 -- Запросы могут часто включать поиск по артикулу (vendor_code), названию и категории, поэтому по этим полям можно сделать составной индекс:
-CREATE INDEX vendcode_product_category_idx ON products (vendor_code, product, category_id);
+CREATE INDEX vendcode_product_idx ON products (vendor_code, product);
 
 -- Также можно создать составной индекс на поля производителя и поставщика:
 CREATE INDEX supplier_manufacturer_idx ON products (supplier_id, manufacturer_id);
@@ -306,6 +305,25 @@ CREATE TABLE IF NOT EXISTS product_params
     value_text_arr text[],
     value_jsonb jsonb,
     PRIMARY KEY (product_id, parameter_id)
+);
+
+-- Дополнительных индексов нет.
+
+-- Таблица "Товар_категория"
+
+/*
+    Ограничения:
+
+    1) сочетание полей product_id и category_id является PK в пределах таблицы. 
+    Индекс создаётся автоматически.
+    Оба поля ссылкаются на соответствующие идентификаторы в своих таблицах.
+*/
+-- Таблица "Продукт-категория"
+CREATE TABLE IF NOT EXISTS product_category
+(
+    product_id int NOT NULL REFERENCES products(id),
+    category_id int NOT NULL REFERENCES categories(id),
+    PRIMARY KEY (product_id, category_id)
 );
 
 -- Дополнительных индексов нет.
