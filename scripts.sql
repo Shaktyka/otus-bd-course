@@ -408,39 +408,53 @@ ALTER TABLE ship_methods OWNER to justcoffee;
 
 COMMENT ON TABLE ship_methods IS 'Способ доставки';
 
--- Таблица "Заказы"
-CREATE TABLE IF NOT EXISTS orders.orders
+-- Таблица "Заказы" (партицированная)
+CREATE TABLE orders.orders
 (
-    id serial NOT NULL UNIQUE PRIMARY KEY,
+    id serial NOT NULL,
     dttmcr timestamptz NOT NULL DEFAULT now(),
     user_id int NOT NULL REFERENCES users(id),
     order_sum numeric NOT NULL CHECK (order_sum > 0),
     pay_method_id int NOT NULL REFERENCES pay_methods(id),
     ship_method_id int NOT NULL REFERENCES ship_methods(id),
     address_id int NOT NULL REFERENCES adresses(id),
-    last_status_id int NOT NULL REFERENCES statuses(id)
-);
+    last_status_id int NOT NULL REFERENCES statuses(id),
+    PRIMARY KEY (id, dttmcr)
+) PARTITION BY RANGE (dttmcr);
+
+CREATE TABLE orders_y2022 PARTITION OF orders
+    FOR VALUES FROM ('2022-01-01') TO ('2023-01-01');
+    
+CREATE TABLE orders_y2023 PARTITION OF orders
+    FOR VALUES FROM ('2023-01-01') TO ('2024-01-01');
+
+CREATE TABLE orders_y2024 PARTITION OF orders
+    FOR VALUES FROM ('2024-01-01') TO ('2025-01-01');
 
 ALTER TABLE orders OWNER to justcoffee;
 
 COMMENT ON TABLE orders IS 'Заказы';
 
 -- Индексы
+CREATE INDEX ON orders(id, dttmcr); -- по ключу партицирования
+
 CREATE INDEX ON orders (user_id);
 CREATE INDEX ON orders (pay_method_id);
 CREATE INDEX ON orders (ship_method_id);
 CREATE INDEX ON orders (address_id);
 CREATE INDEX ON orders (last_status_id);
 
--- Таблица "Товары в заказе"
+-- Товары в заказе:
 CREATE TABLE IF NOT EXISTS orders.order_items
 (
+    id serial NOT NULL UNIQUE PRIMARY KEY,
     dttmcr timestamptz NOT NULL DEFAULT now(),
-    order_id int NOT NULL REFERENCES orders(id),
+    order_id int NOT NULL,
+    order_date timestamptz NOT NULL,
     product_id int NOT NULL REFERENCES products(id),
-    price_id int NOT NULL REFERENCES orders(id),
+    price_id int NOT NULL REFERENCES prices(id),
     amount int NOT NULL DEFAULT 1 CHECK (amount > 0),
-    PRIMARY KEY (order_id, product_id, price_id)
+    FOREIGN KEY (order_id, order_date) REFERENCES orders (id, dttmcr)
 );
 
 ALTER TABLE order_items OWNER to justcoffee;
@@ -452,11 +466,13 @@ CREATE TABLE IF NOT EXISTS orders.shipping
 (
     id serial NOT NULL UNIQUE PRIMARY KEY,
     dttmcr timestamptz NOT NULL DEFAULT now(),
-    order_id bigint NOT NULL REFERENCES orders(id),
+    order_id int NOT NULL,
+    order_date timestamptz NOT NULL,
     ship_method_id int NOT NULL REFERENCES ship_methods(id),
     ship_date date CHECK (ship_date >= current_date),
     ship_price numeric DEFAULT 0 CHECK (ship_price = 0 or ship_price > 0),
-    status_id int NOT NULL REFERENCES statuses(id)
+    status_id int NOT NULL REFERENCES statuses(id),
+    FOREIGN KEY (order_id, order_date) REFERENCES orders (id, dttmcr)
 );
 
 ALTER TABLE shipping OWNER to justcoffee;
@@ -473,16 +489,29 @@ CREATE INDEX ON shipping (ship_method_id);
 
 SET search_path TO warehouse, dicts, orders, processes;
 
--- Таблица "История смены статусов"
+-- Таблица "История смены статусов" (партицированая по типу объектов)
 CREATE TABLE IF NOT EXISTS processes.statuses_history
 (
-    id bigserial NOT NULL UNIQUE PRIMARY KEY,
+    id bigserial NOT NULL,
     dttmcr timestamptz NOT NULL DEFAULT now(),
     dttmend timestamptz CHECK (dttmend IS NULL or dttmend >= dttmcr),
     object_type int NOT NULL REFERENCES object_types(id),
     object_id int NOT NULL,
-    status_id int NOT NULL REFERENCES statuses(id)
-);
+    status_id int NOT NULL REFERENCES statuses(id),
+    PRIMARY KEY (id, object_type)
+) PARTITION BY LIST (object_type);
+
+-- Партиция по типу объекта 1
+CREATE TABLE statuses_history_t1 PARTITION OF statuses_history
+    FOR VALUES IN (1);
+
+-- Партиция по типу объекта 2
+CREATE TABLE statuses_history_t2 PARTITION OF statuses_history
+    FOR VALUES IN (2);
+
+-- Партиция по типу объекта 3
+CREATE TABLE statuses_history_t3 PARTITION OF statuses_history
+    FOR VALUES IN (3);
 
 ALTER TABLE statuses_history OWNER to justcoffee;
 
