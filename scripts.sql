@@ -121,7 +121,7 @@ CREATE TABLE IF NOT EXISTS dicts.statuses
     id serial NOT NULL UNIQUE PRIMARY KEY,
     dttmcr timestamptz NOT NULL DEFAULT now(),
     status_group_id int NOT NULL REFERENCES status_groups (id),
-    status_name text NULL UNIQUE
+    status_name text NULL
 );
 
 ALTER TABLE statuses OWNER to justcoffee;
