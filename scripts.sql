@@ -1,12 +1,12 @@
 /*
-    Скрипт предназначен для последовательного выполнения в pgAdmin частями.
+    Скрипт предназначен для выполнения в pgAdmin частями.
 */
 
 --------------------------------------------------
 -- ОТКЛЮЧАЕТ КОННЕКТЫ И УДАЛЯЕТ СУЩЕСТВУЮЩУЮ БД
 --------------------------------------------------
 
--- Переключиться суперпользователем на БД postgres;
+-- Переключиться суперпользователем к БД postgres;
 
 -- Отключает все активные коннекты от удаляемой БД
 SELECT pg_terminate_backend(pid)
@@ -16,25 +16,38 @@ WHERE datname = 'justcoffee';
 -- Удаляет БД:
 DROP DATABASE justcoffee;
 
--- Удаляет пользователя-владельца БД:
-DROP ROLE justcoffee;
-
 ------------------------------------------
--- СОЗДАЁТ ПОЛЬЗОВАТЕЛЯ - ВЛАДЕЛЬЦА БД
+-- СОЗДАЁТ РОЛИ И ПОЛЬЗОВАТЕЛЕЙ
 ------------------------------------------
 
--- Создаёт роль (пользователя) с правом логина
-
+-- Создаёт роль (пользователя) с правами логина, наследования, создания БД и ролей, чтобы работать из-под него:
 CREATE ROLE justcoffee WITH
-  LOGIN
-  NOSUPERUSER
-  INHERIT
-  NOCREATEDB
-  NOCREATEROLE
-  NOREPLICATION
-  PASSWORD '9996';
+    LOGIN
+    NOSUPERUSER
+    INHERIT
+    CREATEDB
+    CREATEROLE
+    NOREPLICATION
+    PASSWORD '****';
 
-COMMENT ON ROLE justcoffee IS 'Пользователь для БД JustCoffee';
+COMMENT ON ROLE justcoffee IS 'Пользователь-админ БД JustCoffee';
+
+-- Создаёт роль для команды разработчиков:
+CREATE ROLE developer;
+
+-- Создаёт роль "читателя данных", например, для аналитика:
+CREATE ROLE reporting_user;
+
+-- Срздаёт пользователя-разработчика:
+CREATE USER dev_yura WITH LOGIN PASSWORD '****';
+
+-- Создаёт пользователя-аналитика:
+CREATE USER report_mihail WITH LOGIN PASSWORD '****';
+
+-- Присоедняет пользователей к ролям:
+GRANT developer TO dev_yura;
+
+GRANT reporting_user TO report_mihail;
 
 ------------------------------------------
 -- СОЗДАЁТ БД 
@@ -54,29 +67,36 @@ WITH
 COMMENT ON DATABASE justcoffee
     IS 'База данных, владельцем которой будет пользователь justcoffee';
 
--- Даёт все права доступа пользователю justcoffee
-GRANT ALL ON DATABASE justcoffee TO justcoffee;
-
 ------------------------------------------
--- СОЗДАТЬ СХЕМЫ
+-- СОЗДАЁТ СХЕМЫ
 ------------------------------------------
 
 -- Подключиться к созданной БД
 
+-- Даёт все права на БД пользователю justcoffee
+GRANT ALL ON DATABASE justcoffee TO justcoffee;
+
 -- Запрещает всем польз-лям создание объектов в схеме public:
-REVOKE CREATE ON SCHEMA public FROM PUBLIC;
+REVOKE CREATE ON SCHEMA public FROM public;
+
+-- запрещает коннектиться к БД из-под пароля public:
+REVOKE ALL ON DATABASE justcoffee FROM public;
 
 -- Создаёт схемы БД для проекта:
-CREATE SCHEMA dicts;      -- справочники и т.п.
-CREATE SCHEMA warehouse;  -- склад
-CREATE SCHEMA orders;     -- заказы
-CREATE SCHEMA processes;  -- процессы
+CREATE SCHEMA dicts AUTHORIZATION justcoffee;      -- справочники и т.п.
+CREATE SCHEMA warehouse AUTHORIZATION justcoffee;  -- склад
+CREATE SCHEMA orders AUTHORIZATION justcoffee;     -- заказы
+CREATE SCHEMA processes AUTHORIZATION justcoffee;  -- процессы
 
--- Выдаёт права на схемы пользователю-владельцу:
-GRANT ALL ON SCHEMA warehouse TO justcoffee;
-GRANT ALL ON SCHEMA orders TO justcoffee;
-GRANT ALL ON SCHEMA dicts TO justcoffee;
-GRANT ALL ON SCHEMA processes TO justcoffee;
+-- Даёт права польз-лям (на примере аналитика) на использование схем:
+
+GRANT USAGE ON SHEMA dicts TO reporting_user;
+GRANT USAGE ON SHEMA warehouse TO reporting_user;
+GRANT USAGE ON SHEMA orders TO reporting_user;
+GRANT USAGE ON SHEMA processes TO reporting_user;
+GRANT CREATE ON SCHEMA processes TO reporting_user; -- аналитик сможет создавать тут отчёты
+
+-- Дальше нужно будет дать права на таблицы в этих схемах
 
 ---------------------------------------
 -- ОБЩИЕ СУЩНОСТИ (схема dicts)
@@ -551,7 +571,6 @@ CREATE OR REPLACE VIEW dicts.v_unconfirmed_users AS
     FROM dicts.users AS u
     WHERE u.status_id = 1  -- условно предполагаем, что статус такой
     ORDER BY u.dttmcr DESC;
-
 
 -- Список новых доставок за сегодня:
 CREATE OR REPLACE VIEW orders.v_new_shipping AS
