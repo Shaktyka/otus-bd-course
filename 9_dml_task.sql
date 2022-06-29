@@ -23,10 +23,11 @@
 -- 1) выгрузить данные из таблицы в файл в файловой системе;
 -- 2) загрузить данные из файла в таблицу.
 
--- Пример 1: выгрузить данные из таблицы в файл формата CSV 
-
--- Пример 2: загрузить в БД данные из файла CSV (EXCEL предварительно нужно преобразовать в CSV)
+-- Пример 1: загрузить в БД данные из файла CSV (EXCEL предварительно нужно преобразовать в CSV)
 \COPY warehouse.manufacturers(manufacturer,site_link,logo_link,reg_date) 
 FROM '/Users/elena/Desktop/projects/otus-bd-course/files/Производители_кофе.csv' 
 DELIMITER ';' 
 CSV HEADER;
+
+-- Пример 2: выгрузить данные из таблицы в файл формата CSV 
+\COPY warehouse.manufacturers TO '/Users/elena/Desktop/projects/otus-bd-course/files/manufacturers.csv' DELIMITER ';' CSV HEADER;
