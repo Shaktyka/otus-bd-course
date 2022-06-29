@@ -210,7 +210,8 @@ CREATE TABLE IF NOT EXISTS warehouse.manufacturers
     dttmcr timestamptz NOT NULL DEFAULT now(),
     manufacturer text NOT NULL UNIQUE,
     logo_link text NOT NULL,
-    site_link text
+    site_link text,
+    reg_date date
 );
 
 ALTER TABLE manufacturers OWNER to justcoffee;
