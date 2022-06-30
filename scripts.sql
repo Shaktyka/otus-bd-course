@@ -228,7 +228,6 @@ CREATE TABLE IF NOT EXISTS warehouse.suppliers
     dttmcr timestamptz NOT NULL DEFAULT now(),
     supplier text NOT NULL UNIQUE,
     company_phone text,
-    manager_id int NOT NULL REFERENCES users(id),
     site_link text
 );
 
@@ -238,7 +237,6 @@ COMMENT ON TABLE suppliers IS 'Поставщики';
 
 -- Индексы:
 CREATE INDEX ON suppliers (supplier);
-CREATE INDEX ON suppliers (manager_id);
 
 -- Таблица "Категории товаров"
 CREATE TABLE IF NOT EXISTS warehouse.categories
@@ -278,8 +276,7 @@ CREATE TABLE IF NOT EXISTS warehouse.products
     manufacturer_id int NOT NULL REFERENCES manufacturers(id),
     supplier_id int NOT NULL REFERENCES suppliers(id),
     photos text[],
-    description_text text,
-    status_id int NOT NULL REFERENCES statuses(id)
+    description_text text
 );
 
 ALTER TABLE products OWNER to justcoffee;
@@ -289,7 +286,6 @@ COMMENT ON TABLE products IS 'Товары';
 -- Индексы
 CREATE INDEX vendcode_product_idx ON products (vendor_code, product);
 CREATE INDEX supplier_manufacturer_idx ON products (supplier_id, manufacturer_id);
-CREATE INDEX ON products (status_id);
 
 -- Таблица "Продукт-категория"
 CREATE TABLE IF NOT EXISTS warehouse.product_category
@@ -307,7 +303,7 @@ COMMENT ON TABLE product_category IS 'Связь товара и категор�
 CREATE TABLE IF NOT EXISTS warehouse.parameters
 (
     id serial NOT NULL UNIQUE PRIMARY KEY,
-    dttmcl timestamptz,
+    dttmcr timestamptz NOT NULL DEFAULT now(),
     parameter text NOT NULL UNIQUE
 );
 
