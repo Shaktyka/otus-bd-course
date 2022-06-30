@@ -2,7 +2,7 @@
 -- Напишите запрос по своей базе с регулярным выражением, 
 -- добавьте пояснение, что вы хотите найти.
 
--- 1) Найти пользователя по инициалам 'ФИВ', оставил отзыв на сайте:
+-- 1) Найти пользователя по инициалам 'ФИВ', он оставил негативный отзыв на сайте:
 
 SELECT id, last_name, first_name, middle_name
 FROM dicts.users
@@ -19,6 +19,69 @@ AND first_name = 'Артур';
 -- Напишите запрос по своей базе с использованием LEFT JOIN и INNER JOIN, 
 -- как порядок соединений во FROM влияет на результат? Почему?
 
+/*
+    Исследуем связи товаров и категорий, тут используются 3 таблицы: товары, товары-категории, категории.
+*/
+
+/*
+    Запрос c LEFT JOIN: получаем список товаров слева, список категорий справа и видим, что товару с id 4 категория не назначена.
+    Здесь выборка происходит по "левой" таблице (products).
+    Важно, что присоединять третью таблицу (categories) нужно также через LEFT JOIN, иначе в выборке
+    окажутся только общие для всех 3х таблиц записи.
+*/
+SELECT 
+    p.id as product_id,
+    p.product,
+    pc.product_id,
+    pc.category_id,
+    ct.category
+FROM warehouse.products AS p
+LEFT JOIN warehouse.product_category AS pc ON p.id = pc.product_id
+LEFT JOIN warehouse.categories AS ct ON pc.category_id = ct.id;
+
+/*
+    Запрос с INNER JOIN: получаем только "общие" записи, имеющиеся во всех 3х таблицах 
+    и не видим товары без категорий.
+*/
+SELECT 
+    p.id as product_id,
+    p.product,
+    pc.product_id,
+    pc.category_id,
+    ct.category
+FROM warehouse.products AS p
+INNER JOIN warehouse.product_category AS pc ON p.id = pc.product_id
+LEFT JOIN warehouse.categories AS ct ON pc.category_id = ct.id;
+
+/*
+    Если же в первом запросе таблицу категорий присоединить через RIGHT JOIN,
+    то можно увидеть категории, не назначенные ни для одного товара. Это тоже бывает полезно.
+    Таким образом, способ соединения таблиц важен.
+*/
+SELECT 
+    p.id as product_id,
+    p.product,
+    pc.product_id,
+    pc.category_id,
+    ct.category
+FROM warehouse.products AS p
+LEFT JOIN warehouse.product_category AS pc ON p.id = pc.product_id
+RIGHT JOIN warehouse.categories AS ct ON pc.category_id = ct.id;
+
+/*
+    А вот в случае соединений таблиц через перечисление во FROM c условием в WHERE, порядок 
+    соединения таблиц не важен, т.к. в этом случае выборка работает как INNER JOIN: 
+    выберутся только общие для всех трёх таблиц записи:
+*/
+SELECT 
+    p.id as product_id,
+    p.product,
+    pc.product_id,
+    pc.category_id,
+    ct.id,
+    ct.category
+FROM warehouse.categories AS ct, warehouse.products AS p, warehouse.product_category AS pc
+WHERE pc.category_id = ct.id AND p.id = pc.product_id;
 
 -- Напишите запрос на добавление данных с выводом информации о добавленных строках.
 

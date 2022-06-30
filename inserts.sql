@@ -8,7 +8,8 @@ VALUES
 ('Пользователи'), 
 ('Заказы'), 
 ('Доставка'), 
-('Поставки');
+('Поставки'),
+('Товары');
 
 -- Статусы
 INSERT INTO dicts.statuses (status_group_id, status_name) 
