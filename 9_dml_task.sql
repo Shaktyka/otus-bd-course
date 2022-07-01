@@ -21,9 +21,7 @@ AND first_name = 'Артур';
 
 /*
     Исследуем связи товаров и категорий, тут используются 3 таблицы: товары, товары-категории, категории.
-*/
 
-/*
     Запрос c LEFT JOIN: получаем список товаров слева, список категорий справа и видим, что товару с id 4 категория не назначена.
     Здесь выборка происходит по "левой" таблице (products).
     Важно, что присоединять третью таблицу (categories) нужно также через LEFT JOIN, иначе в выборке
@@ -92,7 +90,20 @@ INSERT INTO dicts.object_types (object_type) VALUES
 RETURNING *;
 
 -- Напишите запрос с обновлением данные используя UPDATE FROM.
-
+UPDATE
+  <table1>
+SET
+  customer=subquery.customer,
+  address=subquery.address,
+  partn=subquery.partn
+FROM
+  (
+    SELECT
+      address_id, customer, address, partn
+    FROM  /* big hairy SQL */ ...
+  ) AS subquery
+WHERE
+  dummy.address_id=subquery.address_id;
 
 -- Напишите запрос для удаления данных с оператором DELETE 
 -- используя join с другой таблицей с помощью using.

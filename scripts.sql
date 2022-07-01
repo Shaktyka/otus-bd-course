@@ -569,6 +569,8 @@ CREATE OR REPLACE VIEW dicts.v_unconfirmed_users AS
     WHERE u.status_id = 1  -- условно предполагаем, что статус такой
     ORDER BY u.dttmcr DESC;
 
+ALTER VIEW dicts.v_unconfirmed_users OWNER TO justcoffee;
+
 -- Список новых доставок за сегодня:
 CREATE OR REPLACE VIEW orders.v_new_shipping AS
     SELECT
@@ -586,16 +588,20 @@ CREATE OR REPLACE VIEW orders.v_new_shipping AS
         s.dttmcr::date >= current_date
         and s.status_id = 2; -- условно предполагаем, что статус такой
 
+ALTER VIEW orders.v_new_shippings OWNER TO justcoffee;
+
 -- Создаёт материализованное представление для сборки массива категорий для товаров, 
 -- чтобы при формировании списка продуктов быстро получать список категорий.
 -- Обновляться будет по триггеру на таблице warehouse.product_category (товар-категория).
 
-CREATE MATERIALIZED VIEW products_cat_arr AS 
+CREATE MATERIALIZED VIEW orders.products_cat_arr AS 
     SELECT
         pc.product_id,
         array_agg(pc.category_id) as cat_arr
     FROM warehouse.product_category AS pc
     JOIN products AS p ON pc.product_id = p.id
     GROUP BY pc.product_id;
+
+ALTER VIEW orders.products_cat_arr OWNER TO justcoffee;
 
 CREATE INDEX ON products_cat_arr (product_id);
