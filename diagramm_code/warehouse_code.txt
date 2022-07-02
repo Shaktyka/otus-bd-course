@@ -1,0 +1,126 @@
+// Единицы измерения (грамм, шт., упаковка и т.п)
+Table units as UN {
+    id int [pk, increment, not null, unique]
+    dttmcr timestamptz [not null, default: `now()`]
+    unit text [not null, unique]
+}
+
+// Производители товаров (производители)
+Table manufacturers as M {
+    id int [pk, increment, not null, unique]
+    dttmcr timestamptz [not null, default: `now()`]
+    manufacturer text [not null]
+    logo_link text [not null]
+    site_link text
+}
+
+// Товары (справочник)
+// Это УНИВЕРС-Й справочник товаров на основе UPC, учитывает формы товара
+Table products as P {
+    id int [pk, increment, not null, unique]
+    dttmcr timestamptz [not null, default: `now()`]
+    upc text [not null, unique]
+    product text [not null]
+    photo text
+    descr_text text
+    unit_id int [not null, ref: > units.id]
+    amount int [not null]
+    mass numeric
+}
+
+// Поставщики (справочник)
+Table suppliers as S {
+    id int [pk, increment, not null, unique]
+    dttmcr timestamptz [not null, default: `now()`]
+    supplier text [not null, unique]
+    company_phone text
+    site_link text
+}
+
+// Категории товаров
+Table categories as CT {
+    id int [pk, increment, not null, unique]
+    dttmcr timestamptz [not null, default: `now()`]
+    category text [not null, unique]
+    slug text [not null, unique]
+}
+
+// Связь товара с категорией
+Table product_category as PT {
+  product_id int [not null, ref: > P.id]
+  category_id int [not null, ref: > CT.id]
+}
+
+// Справочник характеристик товара
+Table parameters as PR {
+    id int [pk, increment, not null, unique]
+    dttmcr timestamptz [not null, default: `now()`]
+    parameter text [not null, unique]
+}
+
+// Связь характеристик товара с продуктом  
+Table product_params {
+    id int [pk, increment, not null, unique]
+    dttmcr timestamptz [not null, default: `now()`]
+    product_id int [not null, ref: > P.id]
+    parameter_id int [not null, unique, ref: > PR.id]
+    value_int int
+    value_text text
+    value_numeric numeric
+    value_int_arr int[]
+    value_text_arr text[]
+    value_jsonb jsonb
+}
+
+// Прайс-листы (шапка)
+// От поставщиков, у каждого - свои
+Table pricelists as PL {
+    id int [pk, increment, not null, unique]
+    dttmcr timestamptz [not null, default: `now()`]
+    date_beg date [not null]
+    date_end date [not null]
+    supplier_id int [not null, ref: > S.id]
+}
+
+// Прайслист_товары
+// Перечень товаров прайслиста
+Table pricelist_items as PI {
+    id int [pk, increment, not null, unique]
+    dttmcr timestamptz [not null, default: `now()`]
+    pricelist_id int [not null, ref: > PL.id]
+    upc text [not null]
+    manufacturer_id int [not null, ref: > M.id]
+    price_per_unit numeric [not null]
+}
+
+// Склад магазина (система внутреннего учёта наличия товаров)
+// Тут может формироваться свой артикул
+Table warehouse as W {
+    id int [pk, increment, not null, unique]
+    dttmcr timestamptz [not null, default: `now()`]
+    product_id int [not null, ref: > P.id]
+    articul text [not null]
+    pricelist_id int [not null, ref: > PL.id]
+    amount int [not null]
+    status_id int
+}
+
+// Поставки (1-приход,2-возврат)
+// Шапка поставки со ссылкой на поставщика и его прайслист
+Table deliveries as D {
+    id int [pk, increment, not null, unique]
+    dttmcr timestamptz [not null, default: `now()`]
+    operation int [not null]
+    supplier_id int [not null, ref: > S.id]
+    pricelist_id int [not null, ref: > PL.id]
+}
+
+// Поставка-товары
+// Какие товары пришли в поставке в каком кол-ве
+Table delivery_items as DI {
+    id int [pk, increment, not null, unique]
+    dttmcr timestamptz [not null, default: `now()`]
+    delivery_id int [not null, ref: > D.id]
+    upc int [not null]
+    amount int [not null, default: 1]
+}

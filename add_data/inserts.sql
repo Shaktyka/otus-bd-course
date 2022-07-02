@@ -9,7 +9,8 @@ VALUES
 ('Заказы'), 
 ('Доставка'), 
 ('Поставки'),
-('Товары');
+('Товары'),
+('Склад');
 
 -- Статусы
 INSERT INTO dicts.statuses (status_group_id, status_name) 
@@ -25,7 +26,9 @@ VALUES
 (3, 'Новая'),
 (3, 'В пути'),
 (3, 'Завершена'),
-(4, 'Новая');
+(4, 'Новая'),
+(6, 'Заканчивается'),
+(6, 'Закончился');
 
 -- Пользователи
 INSERT INTO dicts.users (last_name, first_name, middle_name, birth_date, email, password_hash, phone, gender, status_id)
