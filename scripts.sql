@@ -424,6 +424,26 @@ ALTER TABLE delivery_items OWNER to justcoffee;
 
 COMMENT ON TABLE delivery_items IS 'Товары в поставке';
 
+-- Таблица "Склад" (товары и их количества)
+-- Добавляем сюда товары после поставок и списываем отсюда в ходе продаж.
+CREATE TABLE IF NOT EXISTS warehouse.warehouse
+(
+    id serial NOT NULL UNIQUE PRIMARY KEY,
+    dttmcr timestamptz NOT NULL DEFAULT now(),
+    product_id int NOT NULL REFERENCES products(id),
+    vendor_code text NOT NULL,
+    pricelist_id int NOT NULL REFERENCES pricelists(id),
+    unit_id int NOT NULL REFERENCES units(id),
+    unit_amount int NOT NULL DEFAULT 1 CHECK (unit_amount > 0),
+    mass numeric CHECK (mass is null or mass > 0),
+    price numeric NOT NULL CHECK (price > 0),
+    amount int NOT NULL CHECK (amount >= 0)
+);
+
+ALTER TABLE warehouse OWNER to justcoffee;
+
+COMMENT ON TABLE warehouse IS 'Товары и их количества на складе';
+
 ---------------------------------------
 -- ЗАКАЗЫ и ДОСТАВКА (схема orders)
 ---------------------------------------

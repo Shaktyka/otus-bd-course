@@ -6,15 +6,15 @@
 
 SELECT id, last_name, first_name, middle_name
 FROM dicts.users
-WHERE concat( last_name, ' ', first_name, ' ', middle_name ) LIKE 'Ф% И% В%';
+WHERE concat( last_name, ' ', first_name, ' ', middle_name ) SIMILAR TO 'Ф% И% В%';
 
 -- 2) Найти всех пользователей, у которых в фамилиях одна или 2 буквы 'л'.
 -- Был звонок от такого пользователя, фамилию не уточнили:
 
 SELECT id, last_name, first_name, phone 
 FROM dicts.users
-WHERE last_name SIMILAR TO '%(л|лл)%'
-AND first_name = 'Артур';
+WHERE last_name ~ '.*(л|лл).*'
+AND first_name ~* '^артур$';
 
 -- Напишите запрос по своей базе с использованием LEFT JOIN и INNER JOIN, 
 -- как порядок соединений во FROM влияет на результат? Почему?
@@ -90,6 +90,11 @@ INSERT INTO dicts.object_types (object_type) VALUES
 RETURNING *;
 
 -- Напишите запрос с обновлением данные используя UPDATE FROM.
+
+-- UPDATE здесь - это обновление таблицы склада (товары в наличии) в результате поставок по № поставки, например.
+-- Учесть UPSERT
+
+
 UPDATE
   <table1>
 SET
@@ -100,14 +105,25 @@ FROM
   (
     SELECT
       address_id, customer, address, partn
-    FROM  /* big hairy SQL */ ...
+    FROM  table_name
   ) AS subquery
 WHERE
   dummy.address_id=subquery.address_id;
 
+UPDATE alias1
+SET column1 = alias2.value1
+FROM table1 as alias1
+JOIN table2 as alias2 ON table1.id = table2.id
+WHERE alias1.column2 = value2; 
+
 -- Напишите запрос для удаления данных с оператором DELETE 
 -- используя join с другой таблицей с помощью using.
 
+-- Удаление товаров определённого производителя со склада (таблица warehouse) 
+-- в результате отзыва поставки поставщиком, например:
+
+DELETE FROM table_name row1 
+USING table_name row2 WHERE condition;
 
 -- Приведите пример использования утилиты COPY (по желанию)
 
