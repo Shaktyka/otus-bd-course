@@ -163,7 +163,7 @@ CREATE TABLE IF NOT EXISTS warehouse.pricelist_items
     price_per_unit numeric NOT NULL
 );
 ALTER TABLE pricelist_items OWNER to justcoffee;
-COMMENT ON TABLE pricelist_products IS 'Списки товаров в прайслистах';
+COMMENT ON TABLE pricelist_items IS 'Списки товаров в прайслистах';
 -- Индексы
 CREATE INDEX ON pricelist_items (pricelist_id);
 CREATE INDEX ON pricelist_items (manufacturer_id);
@@ -177,6 +177,7 @@ CREATE TABLE IF NOT EXISTS warehouse.deliveries
     dttmcr timestamptz NOT NULL DEFAULT now(),
     operation smallint NOT NULL DEFAULT 1 CHECK (operation IN (1, 0)),
     supplier_id int NOT NULL REFERENCES suppliers(id),
+    invoice_id int, -- должен ссылаться на запись в таблице документов
     pricelist_id int NOT NULL REFERENCES pricelists(id)
 );
 

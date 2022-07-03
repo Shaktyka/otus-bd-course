@@ -91,30 +91,35 @@ RETURNING *;
 
 -- Напишите запрос с обновлением данные используя UPDATE FROM.
 
--- UPDATE здесь - это обновление таблицы склада (товары в наличии) в результате поставок по № поставки, например.
--- Учесть UPSERT
+-- UPDATE здесь - это обновление таблицы склада после поставки по № поставки и идентификатору поставщика
+-- С CTE:
+with cte (pl_id, del_id, upc, amount) as (
+    select 
+        d.pricelist_id, di.delivery_id, di.upc, di.amount
+    from delivery_items as di
+    join deliveries AS d ON di.delivery_id = d.id
+    where 
+        d.supplier_id = 1
+        and d.id = 1
+)
+UPDATE warehouse
+SET amount = (warehouse.amount + cte.amount)
+FROM cte
+WHERE warehouse.articul = cte.upc AND warehouse.pricelist_id = cte.pl_id;
 
-
-UPDATE
-  <table1>
-SET
-  customer=subquery.customer,
-  address=subquery.address,
-  partn=subquery.partn
-FROM
-  (
-    SELECT
-      address_id, customer, address, partn
-    FROM  table_name
-  ) AS subquery
-WHERE
-  dummy.address_id=subquery.address_id;
-
-UPDATE alias1
-SET column1 = alias2.value1
-FROM table1 as alias1
-JOIN table2 as alias2 ON table1.id = table2.id
-WHERE alias1.column2 = value2; 
+-- Или с помощью подрапроса:
+UPDATE warehouse
+SET amount = (warehouse.amount + cte.amount)
+FROM (
+    select 
+        d.pricelist_id, di.delivery_id, di.upc, di.amount
+    from delivery_items as di
+    join deliveries AS d ON di.delivery_id = d.id
+    where 
+        d.supplier_id = 2
+        and d.id = 2
+) as cte
+WHERE warehouse.articul = cte.upc AND warehouse.pricelist_id = cte.pricelist_id;
 
 -- Напишите запрос для удаления данных с оператором DELETE 
 -- используя join с другой таблицей с помощью using.
@@ -127,13 +132,11 @@ USING table_name row2 WHERE condition;
 
 -- Приведите пример использования утилиты COPY (по желанию)
 
--- COPY служит для перемещения данных между таблицами PostgreSQL и файлами
--- Варианты использования:
--- 1) выгрузить данные из таблицы в файл в файловой системе;
--- 2) загрузить данные из файла в таблицу.
--- Используется для загрузки внешних данных в БД или выгрузки каких-то данных из БД. 
-
--- Привожу команды для использования в среде psql:
+/* COPY служит для перемещения данных между таблицами PostgreSQL и файлами
+  Варианты использования:
+  1) выгрузить данные из таблицы в файл в файловой системе,
+  2) загрузить данные из файла в таблицу.
+*/
 
 -- Пример 1: загрузить в БД данные из файла CSV (файлы XLS предварительно нужно преобразовать в CSV)
 \copy warehouse.manufacturers(manufacturer,site_link,logo_link,reg_date) 
