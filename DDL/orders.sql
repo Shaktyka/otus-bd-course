@@ -87,7 +87,7 @@ CREATE TABLE IF NOT EXISTS orders.order_items
     order_date timestamptz NOT NULL,
     warehouse_id int NOT NULL REFERENCES warehouse(id), -- какой товар заказали
     amount int NOT NULL DEFAULT 1 CHECK (amount > 0),
-    sum int NOT NULL DEFAULT 0, -- сумма за это кол-во
+    sum numeric NOT NULL DEFAULT 0, -- сумма за это кол-во
     FOREIGN KEY (order_id, order_date) REFERENCES orders (id, dttmcr)
 );
 ALTER TABLE order_items OWNER to justcoffee;
