@@ -1,0 +1,45 @@
+// Справочник способов оплаты
+Table pay_methods as PM {
+    id int [pk, increment, not null, unique]
+    dttmcr timestamptz [not null, default: `now()`]
+    pay_method text [not null, unique]
+}
+
+// Справочник способов доставки
+Table ship_methods as SM {
+    id int [pk, increment, not null, unique]
+    dttmcr timestamptz [not null, default: `now()`]
+    ship_method text [not null, unique]
+}
+
+// Заказы
+Table orders as O {
+    id int [pk, increment, not null, unique]
+    dttmcr timestamptz [not null, default: `now()`]
+    user_id int [not null]
+    order_sum numeric [not null]
+    pay_method_id int [not null, ref: > PM.id]
+    ship_method_id int [not null, ref: > SM.id]
+    address_id int [not null]
+    last_status_id int [not null]
+}
+
+// Товары в заказе
+Table order_items {
+    dttmcr timestamptz [not null, default: `now()`]
+    order_id int [not null, ref: > O.id]
+    product_id int [not null]
+    price_id int [not null]
+    amount int [not null, default: 1]
+} 
+
+// Доставка
+Table shipping as SH {
+    id int [pk, increment, not null, unique]
+    dttmcr timestamptz [not null, default: `now()`]
+    order_id bigint [not null, ref: > O.id]
+    ship_method_id int [not null, ref: > SM.id]
+    ship_date date 
+    ship_price numeric [default: 0]
+    status_id int [not null]
+}
