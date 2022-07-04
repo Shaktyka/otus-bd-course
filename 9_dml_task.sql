@@ -121,7 +121,7 @@ RETURNING *;
 -- Напишите запрос с обновлением данные используя UPDATE FROM.
 
 -- UPDATE здесь - это обновление таблицы склада после поставки по № поставки и идентификатору поставщика
--- С CTE:
+-- С использованием CTE:
 with cte (pl_id, del_id, upc, amount) as (
     select 
         d.pricelist_id, di.delivery_id, di.upc, di.amount
@@ -153,11 +153,14 @@ WHERE warehouse.articul = cte.upc AND warehouse.pricelist_id = cte.pricelist_id;
 -- Напишите запрос для удаления данных с оператором DELETE 
 -- используя join с другой таблицей с помощью using.
 
--- Удаление товаров определённого производителя со склада (таблица warehouse) 
--- в результате отзыва поставки поставщиком, например:
+-- Удаление товаров определённого производителя со склада (warehouse), количество которых = 0:
 
-DELETE FROM table_name row1 
-USING table_name row2 WHERE condition;
+DELETE FROM warehouse AS w
+USING pricelists AS p 
+WHERE 
+    w.pricelist_id = p.id 
+    AND p.supplier_id = 1
+    AND w.amount = 0;
 
 -- Приведите пример использования утилиты COPY (по желанию)
 

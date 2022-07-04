@@ -124,3 +124,8 @@ VALUES
 ( 28, '12900181000', 1, 1, 18 ),
 ( 27, '1170883', 2, 5, 17 ),
 ( 26, '1278672', 2, 5, 17 );
+
+-- Добавление товаров на склад как копия:
+INSERT INTO warehouse (product_id, articul, pricelist_id, amount, status_id)
+    SELECT product_id, articul, pricelist_id, 0, status_id FROM warehouse
+    WHERE id IN (5, 6);
