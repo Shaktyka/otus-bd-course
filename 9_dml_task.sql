@@ -38,8 +38,7 @@ LEFT JOIN warehouse.product_category AS pc ON p.id = pc.product_id
 LEFT JOIN warehouse.categories AS ct ON pc.category_id = ct.id;
 
 /*
-    Запрос с INNER JOIN: получаем только "общие" записи, имеющиеся во всех 3х таблицах 
-    и не видим товары без категорий.
+    Запрос с INNER JOIN: получаем только "общие" записи, имеющиеся во всех 3х таблицах и не видим товары без категорий.
 */
 SELECT 
     p.id as product_id,
@@ -69,7 +68,8 @@ RIGHT JOIN warehouse.categories AS ct ON pc.category_id = ct.id;
 /*
     А вот в случае соединений таблиц через перечисление во FROM c условием в WHERE, порядок 
     соединения таблиц не важен, т.к. в этом случае выборка работает как INNER JOIN: 
-    выберутся только общие для всех трёх таблиц записи:
+    выберутся только общие для всех трёх таблиц записи. Но это актуально только для случаев, 
+    когда все таблицы в запросе соединены между собой, как здесь:
 */
 SELECT 
     p.id as product_id,
@@ -80,6 +80,35 @@ SELECT
     ct.category
 FROM warehouse.categories AS ct, warehouse.products AS p, warehouse.product_category AS pc
 WHERE pc.category_id = ct.id AND p.id = pc.product_id;
+
+/*
+    Если же в запросе соединяются 3 или более таблиц, и JOIN или WHERE соединяют только 2 из них, 
+    то произойдёт CROSS JOIN соединённых таблиц с неприсоединённой таблицей, 
+    и в результате получится декартово произведение всех строк.
+*/
+-- Корректный запрос:
+select 
+    d.supplier_id, 
+    d.pricelist_id,
+    di.delivery_id, 
+    di.upc, 
+    di.amount
+FROM warehouse AS w, deliveries AS d, delivery_items AS di
+WHERE 
+    di.delivery_id = d.id 
+    AND w.articul = di.upc
+    AND w.pricelist_id = d.pricelist_id;
+
+-- Запрос, где получился CROSS JOIN:
+select 
+    d.supplier_id, 
+    d.pricelist_id,
+    di.delivery_id, 
+    di.upc, 
+    di.amount
+FROM deliveries AS d, delivery_items AS di, warehouse AS w
+WHERE 
+    di.delivery_id = d.id;
 
 -- Напишите запрос на добавление данных с выводом информации о добавленных строках.
 
