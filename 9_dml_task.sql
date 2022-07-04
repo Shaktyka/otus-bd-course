@@ -16,6 +16,7 @@ FROM dicts.users
 WHERE last_name ~ '.*(л|лл).*'
 AND first_name ~* '^артур$';
 
+
 -- Напишите запрос по своей базе с использованием LEFT JOIN и INNER JOIN, 
 -- как порядок соединений во FROM влияет на результат? Почему?
 
@@ -69,7 +70,7 @@ RIGHT JOIN warehouse.categories AS ct ON pc.category_id = ct.id;
     А вот в случае соединений таблиц через перечисление во FROM c условием в WHERE, порядок 
     соединения таблиц не важен, т.к. в этом случае выборка работает как INNER JOIN: 
     выберутся только общие для всех трёх таблиц записи. Но это актуально только для случаев, 
-    когда все таблицы в запросе соединены между собой, как здесь:
+    когда все таблицы в запросе соединены между собой, как здесь, например:
 */
 SELECT 
     p.id as product_id,
@@ -110,6 +111,7 @@ FROM deliveries AS d, delivery_items AS di, warehouse AS w
 WHERE 
     di.delivery_id = d.id;
 
+
 -- Напишите запрос на добавление данных с выводом информации о добавленных строках.
 
 INSERT INTO dicts.object_types (object_type) VALUES
@@ -117,6 +119,7 @@ INSERT INTO dicts.object_types (object_type) VALUES
 ('Поставщики'),
 ('Заказы') 
 RETURNING *;
+
 
 -- Напишите запрос с обновлением данные используя UPDATE FROM.
 
@@ -150,6 +153,7 @@ FROM (
 ) as cte
 WHERE warehouse.articul = cte.upc AND warehouse.pricelist_id = cte.pricelist_id;
 
+
 -- Напишите запрос для удаления данных с оператором DELETE 
 -- используя join с другой таблицей с помощью using.
 
@@ -161,6 +165,7 @@ WHERE
     w.pricelist_id = p.id 
     AND p.supplier_id = 1
     AND w.amount = 0;
+
 
 -- Приведите пример использования утилиты COPY (по желанию)
 
