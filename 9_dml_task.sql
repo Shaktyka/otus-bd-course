@@ -178,5 +178,7 @@ CSV HEADER;
 DELIMITER ';' 
 CSV HEADER;
 
--- Также можно выгрузить результаты запроса:
+-- Файлы для примеров выше лежат в папке files/
+
+-- Также можно выгрузить в файл результаты запроса:
 \copy (SELECT * FROM warehouse.manufacturers) to '/Users/elena/Desktop/projects/otus-bd-course/files/manufacturers_1.csv' with csv;
