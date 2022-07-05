@@ -10,7 +10,9 @@ VALUES
 ('Доставка'), 
 ('Поставки'),
 ('Товары'),
-('Склад');
+('Склад'),
+('Поставщики'),
+('Платежи');
 
 -- Статусы
 INSERT INTO dicts.statuses (status_group_id, status_name) 
