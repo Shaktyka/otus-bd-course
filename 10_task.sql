@@ -1,13 +1,11 @@
--- Написать комментарии к каждому из индексов
--- Описать что и как делали и с какими проблемами столкнулись
-
 /* 
     1
     Создать индекс к какой-либо из таблиц вашей БД
     Прислать текстом результат команды explain, в которой используется данный индекс.
+    Написать комментарии к каждому из индексов
+    Описать что и как делали и с какими проблемами столкнулись
 
-    statuses - таблица статусов, у неё есть поле status_group_id - 
-    ссылка на идентификатор группы, к которой относится этот статус. 
+    statuses - таблица статусов, у неё есть поле status_group_id - ссылка на идентификатор группы, к которой относится этот статус. 
     Это поле - foreign key, поэтому для ускорения поиска имеет смысл добавить индекс.
     Чтобы было более показательно, я добавила в таблицу ещё 3200 искусственно сгенерированных строк.
 */
@@ -17,63 +15,52 @@ CREATE INDEX ON statuses (status_group_id);
 select * from dicts.statuses
 where status_group_id = 3;
 
--- Запускает сбор аналитики:
-ANALYZE dicts.statuses;
-
 -- Вывод EXPLAIN ANALIZE:
 Index Scan using statuses_status_group_id_idx on statuses as statuses (rows=403 loops=1)
 Index Cond: (status_group_id = 3)
 
 /*
-    2
+    3
     Реализовать индекс для полнотекстового поиска
 
     Пример на таблице products (товары). У каждого товара есть поля название (product) и описание (descr_text), 
-    по которым может быть реализован полнотекстовый поиск. Для реализации полнотекстового поиска я добавлю 
-    GIN-индекс на объединённое поле "название + описание", причём сделать так, чтобы это поле генерировалось само.
+    по которым может быть реализован полнотекстовый поиск. Для реализации такого поиска я добавила 
+    GIN-индекс на объединённое поле "название + описание".
 */
 
--- Добавляет в таблицу генерируемое поле, которое будет содержать 
--- разобранные на лексемы значения полей названия и описание товара:
-
-ALTER TABLE products
-ADD COLUMN product_descr_search tsvector
-GENERATED ALWAYS AS (to_tsvector('russian', product || ' ' || coalesce(descr_text, ''))) STORED;
-
--- Добавляет GIN-индекс:
-CREATE INDEX product_descr_search_idx 
-ON products USING GIN (product_descr_search);
+-- Создаёт индекс:
+CREATE INDEX products_search_idx ON products 
+USING GIN (to_tsvector('russian', product || ' ' || descr_text));
 
 -- Выполняет запрос:
-SELECT product, descr_text
-FROM products
-WHERE product_descr_search @@ to_tsquery('berry & малина');
+SELECT 
+    p.upc,
+    p.product,
+    p.descr_text,
+    p.amount,
+    p.mass
+FROM products AS p
+WHERE to_tsvector('russian', p.product || ' ' || p.descr_text) @@ to_tsquery('америка & арабика');
 
--- Результат, который и ожидался:
-"Berry Blend" "В аромате жасмин, карамель и черная смородина Во вкусе черника, сухофрукты и малина"
+-- Результат поиска:
+"1254881" "Rose Blend" "Смесь специально создана для тех, кто любит выраженный кофе с молоком. Мы подобрали наилучшее соотношение арабик из Южной Америки и Эфиопии и растянули профиль обжарки так, чтобы снизить кислотность и усилить сладкие оттенки вкуса." 1 820
 
--- Результат EXPLAIN ANALIZE:
-Seq Scan on warehouse.products  (cost=0.00..5.68 rows=1 width=64) (actual time=0.132..0.349 rows=2 loops=1)
-    Output: product, descr_text
-    Filter: (products.product_descr_search @@ to_tsquery('berry & малина'::text))
-    Rows Removed by Filter: 10
-Planning Time: 2.901 ms
-Execution Time: 0.370 ms
-
--- После выполнения сбора статистики результат EXPLAIN оказался немного получше:
-Seq Scan on warehouse.products  (cost=0.00..5.15 rows=1 width=359) (actual time=0.094..0.182 rows=2 loops=1)
-    Output: product, descr_text
-    Filter: (products.product_descr_search @@ to_tsquery('berry & малина'::text))
-    Rows Removed by Filter: 10
-Planning Time: 13.824 ms
-Execution Time: 0.199 ms
+-- Результат EXPLAIN:
+Bitmap Heap Scan on warehouse.products p (cost=12.25..16.77 rows=1 width=494) (actual time=0.047..0.048 rows=1 loops=1)
+    Output: upc, product, descr_text, amount, mass
+    Recheck Cond: (to_tsvector('russian'::regconfig, ((p.product || ' '::text) || p.descr_text)) @@ to_tsquery('америка & арабика'::text))
+    Heap Blocks: exact=1
+    ->  Bitmap Index Scan on products_search_idx  (cost=0.00..12.25 rows=1 width=0) (actual time=0.040..0.040 rows=1 loops=1)
+        Index Cond: (to_tsvector('russian'::regconfig, ((p.product || ' '::text) || p.descr_text)) @@ to_tsquery('америка & арабика'::text))
+Planning Time: 0.451 ms
+Execution Time: 0.081 ms
 
 /*
-    3
+    4.1
     Реализовать индекс на часть таблицы 
 
     Частичный индекс был добавлен на таблицу склада warehouse, поле status_id со значением 6 ('Закончился'), 
-    чтобы менеджер мог быстро получать списки таких товаров.
+    чтобы менеджер мог быстро получать и дозаказывать списки таких товаров.
     Для реализации задачи в таблицу было сгенерировано 3000 записей.
 */
 
@@ -82,7 +69,7 @@ CREATE INDEX ending_prod_idx
 ON warehouse (status_id)
 WHERE status_id = 6;
 
--- После сбора статистики видим результат с использованием созданного индекса:
+-- После сбора статистики результат EXPLAIN ANALYSE:
 Bitmap Heap Scan on warehouse.warehouse  (cost=9.72..41.47 rows=300 width=36) (actual time=0.052..0.149 rows=300 loops=1)
     Output: id, dttmcr, product_id, articul, pricelist_id, amount, status_id
     Recheck Cond: (warehouse.status_id = 6)
@@ -103,7 +90,7 @@ WHERE
     AND p.supplier_id = 1;
 
 /*
-    4
+    4.2
     Реализовать индекс на поле с функцией
 
     Функциональный индекс был добавлен на таблицу пользователей на объединённые поля фамилии (last_name) 
@@ -113,7 +100,8 @@ WHERE
 
 -- Создаёт индекс:
 CREATE INDEX last_first_name_idx 
-ON users(( lower(last_name) || ' ' || lower(first_name) ));
+ON users(( lower(COALESCE(last_name,'')) || ' ' || lower(first_name,'') ));
+-- Учитываем случаи, когда фамилия может быть NULL
 
 -- Результат EXPLAIN:
 Index Scan using last_first_name_idx on dicts.users u  (cost=0.28..8.31 rows=1 width=81) (actual time=0.066..0.067 rows=1 loops=1)
