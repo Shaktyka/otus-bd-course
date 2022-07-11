@@ -31,6 +31,7 @@ INSERT INTO statistic(player_name, player_id, year_game, points)
 -- 2. Данные добавлены https://prnt.sc/p86l096pqvGL 
 
 -- 3. Запрос суммы очков с группировкой и сортировкой по годам
+
 -- Простой запрос без оконных ф-ций:
 SELECT 
     s.year_game,
@@ -88,3 +89,83 @@ SELECT
 FROM cte;
 
 -- Результат: https://prnt.sc/UUAAepMmR1qZ 
+
+
+
+-- Если применить другие оконные функции к этому набору:
+
+-- Рейтинги игроков по годам:
+SELECT
+    s.year_game,
+    dense_rank() over w AS rank,
+    s.player_id,
+    s.player_name,
+    s.points
+FROM statistic AS s
+WINDOW w AS (
+    PARTITION BY s.year_game
+    ORDER BY s.points DESC
+)
+ORDER BY s.year_game, s.points DESC;
+
+-- Результат: https://prnt.sc/vLnmT-7TNTqb
+
+-- Рейтинги игроков по годам по отношению к среднему значению года (дельта):
+SELECT
+    s.year_game,
+    s.player_id,
+    s.player_name,
+    s.points,
+    (avg(s.points) over w)::numeric(12,2) as avg_points,
+    s.points - (avg(s.points) over w)::numeric(12,2) as delta
+FROM statistic AS s
+WINDOW w AS (
+    PARTITION BY s.year_game
+    ORDER BY s.year_game
+)
+ORDER BY s.year_game, s.points - (avg(s.points) over w)::numeric(12,2) desc;
+
+-- Результат: https://prnt.sc/wz9dYsLuveIv
+
+-- Вывод самых "успешных" игроков по годам
+with cte as (   
+    select
+        dense_rank() over w as rank,
+        s.year_game,
+        s.player_id,
+        s.player_name,
+        s.points
+    from statistic AS s
+    window w as (
+        PARTITION BY s.year_game
+        order by s.year_game, s.points desc
+    )
+)
+select 
+    year_game,
+    player_id,
+    player_name,
+    points
+from cte
+where rank = 1
+order by year_game, points desc;
+
+-- Результат: https://prnt.sc/tOTcq6GSUsNg 
+
+-- Можно вывести данные игроков с наименьшим и наибольшим числом очков по годам:
+select
+    s.year_game,
+    s.player_id,
+    s.player_name,
+    s.points,
+    first_value(s.points) over w as low_points,
+    last_value(s.points) over w as max_points
+from statistic as s
+window w as (
+    partition by s.year_game
+    order by s.points
+    rows between unbounded preceding and unbounded following
+)
+order by s.year_game;
+
+-- Результат: https://prnt.sc/HmTlf7fQJfUu
