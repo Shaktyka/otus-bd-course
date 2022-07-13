@@ -74,9 +74,21 @@ ORDER BY year_game;
 -- 5. Вывод кол-ва очков по всем игрокам за текущий год и за предыдущий, используя функцию LAG
 
 -- Если выводить по каждому игроку:
+SELECT
+    s.player_id,
+    s.player_name,
+    s.year_game,
+    LAG(s.points, 1) OVER w AS prev_year_points,
+    s.points
+FROM statistic AS s
+WINDOW w AS (
+    PARTITION BY s.player_name
+    ORDER BY s.year_game
+);
 
+-- Результат: https://prnt.sc/U2s44tt061M9
 
--- Если по суммам очков по годам, то так:
+-- Если по суммам очков игроков по годам, то так:
 WITH cte AS (
 	SELECT 
 		s.year_game, 
