@@ -32,10 +32,10 @@ INSERT INTO statistic(player_name, player_id, year_game, points)
 
 -- 3. Запрос суммы очков с группировкой и сортировкой по годам
 
--- Простой запрос без оконных ф-ций:
+-- Данная задача решается, в принципе, и без оконных ф-ций:
 SELECT 
     s.year_game,
-    SUM(s.points) as sum_points
+    SUM(s.points) AS sum_points
 FROM statistic AS s
 GROUP BY s.year_game
 ORDER BY s.year_game;
@@ -72,10 +72,15 @@ ORDER BY year_game;
 -- Результат: https://prnt.sc/QD4qrecJZEba 
 
 -- 5. Вывод кол-ва очков по всем игрокам за текущий год и за предыдущий, используя функцию LAG
+
+-- Если выводить по каждому игроку:
+
+
+-- Если по суммам очков по годам, то так:
 WITH cte AS (
 	SELECT 
 		s.year_game, 
-		SUM(s.points) as sum_points
+		SUM(s.points) AS sum_points
 	FROM statistic AS s
 	GROUP BY s.year_game
 	ORDER BY s.year_game
@@ -85,19 +90,19 @@ SELECT
 	sum_points AS year_points,
 	LAG(sum_points,1) OVER (
 		ORDER BY year_game
-	) as prev_year_poins
+	) AS prev_year_poins
 FROM cte;
 
 -- Результат: https://prnt.sc/UUAAepMmR1qZ 
 
 
 
--- Если применить другие оконные функции к этому набору:
+-- Если применить другие оконные функции к этому набору (в качестве экспериментов):
 
 -- Рейтинги игроков по годам:
 SELECT
     s.year_game,
-    dense_rank() over w AS rank,
+    dense_rank() OVER w AS rank,
     s.player_id,
     s.player_name,
     s.points
@@ -116,56 +121,56 @@ SELECT
     s.player_id,
     s.player_name,
     s.points,
-    (avg(s.points) over w)::numeric(12,2) as avg_points,
-    s.points - (avg(s.points) over w)::numeric(12,2) as delta
+    (avg(s.points) OVER w)::numeric(12,2) AS avg_points,
+    s.points - (avg(s.points) OVER w)::numeric(12,2) AS delta
 FROM statistic AS s
 WINDOW w AS (
     PARTITION BY s.year_game
     ORDER BY s.year_game
 )
-ORDER BY s.year_game, s.points - (avg(s.points) over w)::numeric(12,2) desc;
+ORDER BY s.year_game, s.points - (avg(s.points) OVER w)::numeric(12,2) DESC;
 
 -- Результат: https://prnt.sc/wz9dYsLuveIv
 
--- Вывод самых "успешных" игроков по годам
-with cte as (   
-    select
-        dense_rank() over w as rank,
+-- Вывод самых успешных игроков по годам
+WITH cte AS (   
+    SELECT
+        dense_rank() OVER w AS rank,
         s.year_game,
         s.player_id,
         s.player_name,
         s.points
-    from statistic AS s
-    window w as (
+    FROM statistic AS s
+    WINDOW w AS (
         PARTITION BY s.year_game
-        order by s.year_game, s.points desc
+        ORDER BY s.year_game, s.points DESC
     )
 )
-select 
+SELECT 
     year_game,
     player_id,
     player_name,
     points
-from cte
-where rank = 1
-order by year_game, points desc;
+FROM cte
+WHERE rank = 1
+ORDER BY year_game, points DESC;
 
 -- Результат: https://prnt.sc/tOTcq6GSUsNg 
 
 -- Можно вывести данные игроков с наименьшим и наибольшим числом очков по годам:
-select
+SELECT
     s.year_game,
     s.player_id,
     s.player_name,
     s.points,
-    first_value(s.points) over w as low_points,
-    last_value(s.points) over w as max_points
-from statistic as s
-window w as (
-    partition by s.year_game
-    order by s.points
-    rows between unbounded preceding and unbounded following
+    first_value(s.points) OVER w AS low_points,
+    last_value(s.points) OVER w AS max_points
+FROM statistic AS s
+WINDOW w AS (
+    PARTITION BY s.year_game
+    ORDER BY s.points
+    ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
 )
-order by s.year_game;
+ORDER BY s.year_game;
 
 -- Результат: https://prnt.sc/HmTlf7fQJfUu
