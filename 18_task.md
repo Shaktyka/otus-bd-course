@@ -20,7 +20,7 @@
         TABLESPACE = pg_default
         CONNECTION LIMIT = -1;
 
-[скриншот](/images/log_repl/bd.jpg)
+    [скриншот](/images/log_repl/bd.jpg)
 
 1. Здесь же создана таблица methods с названиями методов доставки. В таблицу добавлены данные:
 
@@ -49,8 +49,8 @@
 
 1. После перезагрузки конфигурации делаем проверку, что подписка создана:
 
-    select * from pg_publication;
-    select * from pg_publication_tables;
+    SELECT * FROM pg_publication;
+    SELECT * FROM pg_publication_tables;
 
     [скриншот](/images/log_repl/%D0%BF%D1%80%D0%BE%D0%B2%D0%B5%D1%80%D0%BA%D0%B0.jpg)
 
@@ -60,22 +60,22 @@
 
 1. На кластере main2 добавляется подписка на публикацию таблицы methods с кластера main:
 
-    create subscription sub_methods 
-    connection 'dbname=justcoffee host=127.0.0.1 user=rep_user port=5432 password=123' 
-    publication pub_method;
+    CREATE SUBSCRIPTION sub_methods 
+    CONNECTION 'dbname=justcoffee host=127.0.0.1 user=rep_user port=5432 password=123' 
+    PUBLICATION pub_method;
 
     [скриншот](/images/log_repl/create_subscription.jpg)
 
 1. Проверка работы репликации. На основном кластере main в таблицу добавляются данные, на кластере с подпиской данные также появляются. 
 
-    insert into methods (method_name) values ('Олени'), ('Голубиная почта');
+    INSERT INTO methods (method_name) VALUES ('Олени'), ('Голубиная почта');
 
     Репликация работает также при использовании операций UPDATE, DELETE и TRUNCATE:
 
+    UPDATE methods SET method_name = 'Северные олени' WHERE id = 4;
+
+    Данные появились в реплицированной таблице:
+
     [скриншот](/images/log_repl/%D0%BF%D1%80%D0%BE%D0%B2%D0%B5%D1%80%D0%BA%D0%B0_%D1%80%D0%B5%D0%BF%D0%BB%D0%B8%D0%BA%D0%B0%D1%86%D0%B8%D0%B8.jpg)
-
-    update methods set method_name = 'Северные олени' where id = 4;
-
-    Данные появились в реплицированной таблице.
 
 # Физическая репликация
