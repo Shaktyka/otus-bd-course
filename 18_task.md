@@ -108,8 +108,11 @@
     sudo rm -rf /var/lib/postgresql/14/main6
 
 1. На мастере настраиваются параметры для подключения и репликации:
+    
     primary_conninfo = 'host=localhost port=5436 user=postgres password=5436' (строка подключения)
+    
     primary_slot_name = test_repl (название слота репликации на мастере)
+    
     recovery_min_apply_delay = 5min (задержка восстановления WAL)
 
     [postgresql.conf](/images/fis_rep/config.jpg)
