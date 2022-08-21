@@ -83,3 +83,69 @@
     
 
 # Физическая репликация
+
+Задание:
+Настроить физическую репликации между двумя кластерами базы данных.
+Репликация должна работать используя "слот репликации".
+Реплика должна отставать от мастера на 5 минут.
+
+1. Тот же набор кластеров, используются кластеры main5 (master) и main6 (slave).
+
+1. На обоих кластерах пользователям postgres задаём пароли.
+
+1. На мастере создаётся база данных replica.
+
+1. Проверяем настройки wal_level, значение replica, как и должно быть.
+
+1. На мастере создан слот для физической репликации:
+
+   SELECT pg_create_physical_replication_slot('test_repl');
+
+   [созданный слот](/images/fis_rep/master_slot.jpg)
+
+1. На реплике удаляется директория с данными:
+
+    sudo rm -rf /var/lib/postgresql/14/main6
+
+1. На мастере настраиваются параметры для подключения и репликации:
+    primary_conninfo = 'host=localhost port=5436 user=postgres password=5436' (строка подключения)
+    primary_slot_name = test_repl (название слота репликации на мастере)
+    recovery_min_apply_delay = 5min (задержка восстановления WAL)
+
+    [postgresql.conf](/images/fis_rep/config.jpg)
+
+1. Делаем бэкап нужной директории с мастера:
+
+    sudo -u postgres -p 5437 pg_basebackup -h localhost -p 5436 -R -X stream -S test_repl -D /var/lib/postgresql/14/main6 -U postgres -W
+
+1. Стартуем кластер реплики: 
+
+    sudo pg_ctlcluster 14 main6 start
+
+    [кластер в режиме recovery](/images/fis_rep/clusters)
+
+1. Проверяем состояние на мастере и на реплике:
+
+    select pg_is_in_recovery();
+
+    [мастер](/images/fis_rep/master_state.jpg)
+
+    [реплика](/images/fis_rep/replica_state.jpg)
+
+1. На мастере в БД replica создаём таблицу и добавляем данные:
+
+    create table test_rep (id serial not null primary key, name text not null);
+
+    insert into test_rep (name) values ('name_1'), ('name_2'), ('name_3');
+
+    [INSERT](/images/fis_rep/master_insert.jpg)
+
+1. На реплике данных пока нет.
+
+    [скриншот](/images/fis_rep/repl_no_data.jpg)
+
+1. По истечении 5 мин данные на реплике появляются:
+
+    [первое добавление данных](/images/fis_rep/repl_ckekup.jpg)
+
+    [второе добавление данных](/images/fis_rep/replica_data_added.jpg)
