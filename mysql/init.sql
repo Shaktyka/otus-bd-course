@@ -1,10 +1,5 @@
-CREATE DATABASE quizgame;
+CREATE DATABASE quizgame CHARACTER SET utf8 COLLATE utf8_general_ci;
 USE quizgame;
-
--- CREATE USER 'admin'@'%' IDENTIFIED BY '1234' COMMENT 'Админ для базы quizgame';
-
--- GRANT ALL PRIVILEGES ON *.* TO 'admin'@'%' WITH GRANT OPTION;
--- FLUSH PRIVILEGES;
 
 -- СХЕМА БД quizgame для сайта с тестами
 
@@ -54,7 +49,7 @@ ALTER TABLE `tests` ADD FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
 ALTER TABLE `tests` ADD FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`);
 ALTER TABLE `tests` ADD FOREIGN KEY (`state_id`) REFERENCES `states` (`id`);
 
--- Тип вопроса
+-- Тип вопроса: способы выбора ответов, могут быть разными
 CREATE TABLE `question_types` (
   `id` int UNIQUE PRIMARY KEY NOT NULL AUTO_INCREMENT,
   `dttmcr` timestamp NOT NULL default now(),
@@ -86,7 +81,7 @@ CREATE TABLE `answers` (
 
 ALTER TABLE `answers` ADD FOREIGN KEY (`question_id`) REFERENCES `questions` (`id`);
 
--- Игры
+-- Тесты, которые проходят пользователи
 CREATE TABLE `games` (
   `id` int UNIQUE PRIMARY KEY NOT NULL AUTO_INCREMENT,
   `dttmcr` timestamp NOT NULL default now(),
