@@ -1,14 +1,12 @@
-CREATE DATABASE quizgame CHARACTER SET utf8 COLLATE utf8_general_ci;
+CREATE DATABASE quizgame;
 USE quizgame;
 
 /*
 Скрипт создания пользователя - админа БД quizgame с выдачей прав:
 
-CREATE USER 'admin'@'%' IDENTIFIED BY '1234' COMMENT 'Админ для базы quizgame';
+CREATE USER 'admin'@'%' IDENTIFIED BY '1234' COMMENT 'Админ для базы quizgame' WITH GRANT OPTION;
 
 GRANT ALL PRIVILEGES ON quizgame.* TO 'admin'@'%';
-
-FLUSH PRIVILEGES;
 */
 
 -- СХЕМА БД quizgame для сайта с тестами

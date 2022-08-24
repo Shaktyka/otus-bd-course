@@ -39,5 +39,73 @@
 
 ## Задание повышенной сложности*
 
-1. Протестить сисбенчем - результат теста приложить в README
+    Протестить сисбенчем - результат теста приложить в README
+
+1. Подготовка: MySQL установлена на Ubyntu 22.04.
+
+1. Создаём пользователя для тестов
+
+    `CREATE USER test_user@'localhost' IDENTIFIED BY '5678';`
+    `GRANT ALL PRIVILEGES on quizgame.* to test_user@'localhost';`
+    
+1.  Подключение пользователя осуществляется с помощью команды:
+
+    `mysql -u otus -p'5678'`
+
+1. В БД создано несколько таблиц (скрипты в файле /mysql/init.sql), все таблицы по умолчанию с движком InnoDB:
+
+    +--------------------+
+    | Tables_in_quizgame |
+    +--------------------+
+    | answers            |
+    | categories         |
+    | games              |
+    | question_types     |
+    | questions          |
+    | states             |
+    | tests              |
+    | users              |
+    +--------------------+
+
+1. Подготовим таблицу
+
+    `sysbench --mysql-host=localhost --mysql-user=test_user --mysql-password='5678' --db-driver=mysql --mysql-db=quizgame /usr/share/sysbench/oltp_read_write.lua prepare`
+    
+    Вывод в консоли:
+
+    Creating table 'sbtest1'...
+    Inserting 10000 records into 'sbtest1'
+    Creating a secondary index on 'sbtest1'...
+
+1. Потестим для начала производительность процессоров:
+
+    `sysbench --test=cpu run`
+
+    Результат: [ссылка](/mysql/result_cpu.jpg)
+
+1. Запустим тест innodb
+
+    `sysbench --mysql-host=localhost --mysql-user=test_user --mysql-password='5678' --db-driver=mysql --mysql-db=quizgame /usr/share/sysbench/oltp_read_write.lua run`
+
+    Результат: [ссылка](/mysql/result_innodb.jpg)
+    
+1. Поменяем движок таблиц на Myisam.
+    
+    Пример на одной: `ALTER TABLE users engine myisam;`
+
+    Выполним тест:
+
+    `sysbench --mysql-host=localhost --mysql-user=test_user --mysql-password='5678' --db-driver=mysql --mysql-db=quizgame /usr/share/sysbench/oltp_read_write.lua run`
+
+    Результат: [ссылка](/mysql/result_myisam.jpg)
+    
+1. Поменяем движок таблиц на Memory:
+    
+    Пример на одной: `ALTER TABLE states engine memory;`
+    
+    Выполним тест:
+
+    `sysbench --mysql-host=localhost --mysql-user=test_user --mysql-password='5678' --db-driver=mysql --mysql-db=quizgame /usr/share/sysbench/oltp_read_write.lua run`
+
+    Результат: [ссылка](/mysql/result_memory.jpg)
 
