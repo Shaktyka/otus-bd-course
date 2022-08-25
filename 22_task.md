@@ -28,136 +28,140 @@
 ### Состояния (статусы)
 
 ```
-    CREATE TABLE states (
-        id int UNIQUE PRIMARY KEY NOT NULL AUTO_INCREMENT,
-        dttmcr timestamp NOT NULL default now(),
-        code char(3) NOT NULL, 
-        state varchar(100) NOT NULL,
-        description varchar(255)
-    );
+CREATE TABLE states (
+    id int UNIQUE PRIMARY KEY NOT NULL AUTO_INCREMENT,
+    dttmcr timestamp NOT NULL default now(),
+    code char(3) NOT NULL, 
+    state varchar(100) NOT NULL,
+    description varchar(255)
+);
 ```
 
 ### Пользователи
 
 ```
-    CREATE TABLE users (
-        id int UNIQUE PRIMARY KEY NOT NULL AUTO_INCREMENT,
-        dttmcr timestamp NOT NULL default now(),
-        bdate date,
-        email varchar(100) UNIQUE NOT NULL,
-        password varchar(100) NOT NULL,
-        referrer_id int,
-        state_id int NOT NULL
-    );
+CREATE TABLE users (
+    id int UNIQUE PRIMARY KEY NOT NULL AUTO_INCREMENT,
+    dttmcr timestamp NOT NULL default now(),
+    bdate date,
+    email varchar(100) UNIQUE NOT NULL,
+    password varchar(100) NOT NULL,
+    referrer_id int,
+    state_id int NOT NULL
+);
 ```
 
-`ALTER TABLE users ADD FOREIGN KEY (state_id) REFERENCES states (id);`
-`ALTER TABLE users ADD FOREIGN KEY (referrer_id) REFERENCES users (id);`
+```ALTER TABLE users ADD FOREIGN KEY (state_id) REFERENCES states (id);```
+
+```ALTER TABLE users ADD FOREIGN KEY (referrer_id) REFERENCES users (id);```
 
 ### Темы тестов
 
-    ```
-    CREATE TABLE themes (
-        id int UNIQUE PRIMARY KEY NOT NULL AUTO_INCREMENT,
-        dttmcr timestamp NOT NULL default now(),
-        theme varchar(100) UNIQUE NOT NULL,
-        description varchar(255)
-    );
-    ```
+```
+CREATE TABLE themes (
+    id int UNIQUE PRIMARY KEY NOT NULL AUTO_INCREMENT,
+    dttmcr timestamp NOT NULL default now(),
+    theme varchar(100) UNIQUE NOT NULL,
+    description varchar(255)
+);
+```
 
 ### Категории тестов
 
-    ```
-    CREATE TABLE categories (
-        id int UNIQUE PRIMARY KEY NOT NULL AUTO_INCREMENT,
-        dttmcr timestamp NOT NULL default now(),
-        theme_id int NOT NULL,
-        category varchar(100) NOT NULL,
-        description varchar(255)
-    );
-    ```
+```
+CREATE TABLE categories (
+    id int UNIQUE PRIMARY KEY NOT NULL AUTO_INCREMENT,
+    dttmcr timestamp NOT NULL default now(),
+    theme_id int NOT NULL,
+    category varchar(100) NOT NULL,
+    description varchar(255)
+);
+```
 
-    `ALTER TABLE categories ADD FOREIGN KEY (theme_id) REFERENCES themes (id);`
+```ALTER TABLE categories ADD FOREIGN KEY (theme_id) REFERENCES themes (id);```
 
 ### Тесты
 
-    ```
-    CREATE TABLE tests (
-        id int UNIQUE PRIMARY KEY NOT NULL AUTO_INCREMENT,
-        dttmcr timestamp NOT NULL default now(),
-        user_id int NOT NULL, 
-        category_id int NOT NULL,
-        name varchar(255) NOT NULL, 
-        description varchar(400), 
-        is_public boolean DEFAULT 0, 
-        state_id int NOT NULL
-    );
-    ```
+```
+CREATE TABLE tests (
+    id int UNIQUE PRIMARY KEY NOT NULL AUTO_INCREMENT,
+    dttmcr timestamp NOT NULL default now(),
+    user_id int NOT NULL, 
+    category_id int NOT NULL,
+    name varchar(255) NOT NULL, 
+    description varchar(400), 
+    is_public boolean DEFAULT 0, 
+    state_id int NOT NULL
+);
+```
 
-    `ALTER TABLE tests ADD FOREIGN KEY (user_id) REFERENCES users (id);`
-    `ALTER TABLE tests ADD FOREIGN KEY (category_id) REFERENCES categories (id);`
-    `ALTER TABLE tests ADD FOREIGN KEY (state_id) REFERENCES states (id);`
+```ALTER TABLE tests ADD FOREIGN KEY (user_id) REFERENCES users (id);```
+
+```ALTER TABLE tests ADD FOREIGN KEY (category_id) REFERENCES categories (id);```
+
+```ALTER TABLE tests ADD FOREIGN KEY (state_id) REFERENCES states (id);```
 
 ### Типы вопросов
 
-    ```
-    CREATE TABLE question_types (
-        id int UNIQUE PRIMARY KEY NOT NULL AUTO_INCREMENT,
-        dttmcr timestamp NOT NULL default now(),
-        type_name varchar(100) NOT NULL,
-        config json 
-    );
-    ```
+```
+CREATE TABLE question_types (
+    id int UNIQUE PRIMARY KEY NOT NULL AUTO_INCREMENT,
+    dttmcr timestamp NOT NULL default now(),
+    type_name varchar(100) NOT NULL,
+    config json 
+);
+```
 
 ### Вопросы теста
 
-    ```
-    CREATE TABLE questions (
-        id int UNIQUE PRIMARY KEY NOT NULL AUTO_INCREMENT,
-        dttmcr timestamp NOT NULL default now(),
-        test_id int NOT NULL,
-        question varchar(255) NOT NULL,
-        description varchar(400),
-        question_type_id int NOT NULL
-    );
-    ```
+```
+CREATE TABLE questions (
+    id int UNIQUE PRIMARY KEY NOT NULL AUTO_INCREMENT,
+    dttmcr timestamp NOT NULL default now(),
+    test_id int NOT NULL,
+    question varchar(255) NOT NULL,
+    description varchar(400),
+    question_type_id int NOT NULL
+);
+```
 
-    `ALTER TABLE questions ADD FOREIGN KEY (test_id) REFERENCES tests (id);`
-    `ALTER TABLE questions ADD FOREIGN KEY (question_type_id) REFERENCES question_types (id);`
+```ALTER TABLE questions ADD FOREIGN KEY (test_id) REFERENCES tests (id);```
+
+```ALTER TABLE questions ADD FOREIGN KEY (question_type_id) REFERENCES question_types (id);```
 
 ### Ответы на вопросы
 
-    ```
-    CREATE TABLE answers (
-        id int UNIQUE PRIMARY KEY NOT NULL AUTO_INCREMENT,
-        dttmcr timestamp NOT NULL default now(),
-        question_id int NOT NULL,
-        answer varchar(255) NOT NULL, 
-        is_right boolean DEFAULT 0 
-    );
-    ```
+```
+CREATE TABLE answers (
+    id int UNIQUE PRIMARY KEY NOT NULL AUTO_INCREMENT,
+    dttmcr timestamp NOT NULL default now(),
+    question_id int NOT NULL,
+    answer varchar(255) NOT NULL, 
+    is_right boolean DEFAULT 0 
+);
+```
 
-    `ALTER TABLE answers ADD FOREIGN KEY (question_id) REFERENCES questions (id);`
+```ALTER TABLE answers ADD FOREIGN KEY (question_id) REFERENCES questions (id);```
 
 ### Прохождение тестов
 
-    ```
-    CREATE TABLE games (
-        id int UNIQUE PRIMARY KEY NOT NULL AUTO_INCREMENT,
-        dttmcr timestamp NOT NULL default now(),
-        user_id int NOT NULL,
-        test_id int NOT NULL,
-        question_id int NOT NULL,
-        answers json, 
-        result boolean DEFAULT 0 
-    );
-    ```
+```
+CREATE TABLE games (
+    id int UNIQUE PRIMARY KEY NOT NULL AUTO_INCREMENT,
+    dttmcr timestamp NOT NULL default now(),
+    user_id int NOT NULL,
+    test_id int NOT NULL,
+    question_id int NOT NULL,
+    answers json, 
+    result boolean DEFAULT 0 
+);
+```
 
-    `ALTER TABLE games ADD FOREIGN KEY (user_id) REFERENCES users (id);`
+```ALTER TABLE games ADD FOREIGN KEY (user_id) REFERENCES users (id);```
 
-    `ALTER TABLE games ADD FOREIGN KEY (test_id) REFERENCES tests (id);`
+```ALTER TABLE games ADD FOREIGN KEY (test_id) REFERENCES tests (id);```
 
-    `ALTER TABLE games ADD FOREIGN KEY (question_id) REFERENCES questions (id);`
+```ALTER TABLE games ADD FOREIGN KEY (question_id) REFERENCES questions (id);```
 
 ## Запросы для добавления данных
 
