@@ -24,15 +24,16 @@
 
 ### Пользователи
 
-При регистрации в таблицу записываются email с ограничением UNIQUE для всей таблицы, хэш пароля, дата рождения с типом date. Пользователи могут приходить по реферальным ссылкам, поэтому предусмотрена запись id пригласившего пользователя.
+При регистрации в таблицу записываются email с ограничением UNIQUE для всей таблицы, md5 хэш пароля, дата рождения с типом date. Пользователи могут приходить по реферальным ссылкам, поэтому предусмотрена запись id пригласившего пользователя.
 
 ```
 CREATE TABLE IF NOT EXISTS users (
     id int PRIMARY KEY AUTO_INCREMENT,
     dttmcr timestamp NOT NULL default CURRENT_TIMESTAMP,
+    nick varchar(100) NOT NULL,
     bdate date,
     email varchar(100) UNIQUE NOT NULL,
-    password_hash varchar(100) NOT NULL,
+    password_hash varchar(32) NOT NULL,
     referrer_id int
 );
 ```
@@ -103,7 +104,7 @@ CREATE TABLE IF NOT EXISTS tests (
     description varchar(255), 
     test_config json,
     is_public boolean DEFAULT FALSE,
-    status ENUM('in_progress', 'on_moderation', 'publicated', 'deleted') NOT NULL
+    status ENUM('in_progress','on_moderation','publicated','deleted') NOT NULL
 );
 ```
 
@@ -234,3 +235,40 @@ CREATE TABLE IF NOT EXISTS game_answers (
 Добавляет внешний ключ на таблицу questions:
 
 `ALTER TABLE game_answers ADD FOREIGN KEY (question_id) REFERENCES questions (id);`
+
+## Примеры запросов добавления данных
+
+### Пример добавления нового пользователя
+
+```
+INSERT INTO users (nick, bdate, email, password_hash)
+VALUES
+('SunFlower', '1990-10-05', 'sun_flower1990@gmail.com', '608333adc72f545078ede3aad71bfe74');
+```
+
+### Пример добавления теста
+
+```
+INSERT INTO tests (user_id, category_id, name, description, test_config, is_public, status)
+VALUES
+(1, 1, 'SQL уровень 1', 'Тест для проверки базовых навыков DML', '{ "custom_questions_amount": 12, "shuffled_answers": true }', TRUE, 'in_progress');
+```
+
+### Пример добавления одного вопроса для теста
+
+```
+INSERT INTO questions (question, description, question_type_id )
+VALUES
+('Команда, используемая для добавления данных в таблицу', NULL, 1)
+```
+
+### Пример добавления ответов для теста
+
+```
+INSERT INTO answers (question_id, answer, is_right )
+VALUES
+(1, 'SELECT', FALSE),
+(1, 'UPDATE', FALSE)
+(1, 'INSERT', TRUE)
+(1, 'DROP', FALSE)
+```
