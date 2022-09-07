@@ -27,9 +27,9 @@
 При регистрации в таблицу записываются email с ограничением UNIQUE для всей таблицы, хэш пароля, дата рождения с типом date. Пользователи могут приходить по реферальным ссылкам, поэтому предусмотрена запись id пригласившего пользователя.
 
 ```
-CREATE TABLE users (
-    id int UNIQUE PRIMARY KEY NOT NULL AUTO_INCREMENT,
-    dttmcr timestamp NOT NULL default now(),
+CREATE TABLE IF NOT EXISTS users (
+    id int PRIMARY KEY AUTO_INCREMENT,
+    dttmcr timestamp NOT NULL default CURRENT_TIMESTAMP,
     bdate date,
     email varchar(100) UNIQUE NOT NULL,
     password_hash varchar(100) NOT NULL,
@@ -46,11 +46,11 @@ CREATE TABLE users (
 Темы для главной страницы. Крупные разделы, задаваемые разработчиками. Название темы небольшое, описание - внутреннее поле, может быть довольно длинным. У каждой темы есть пиктограмма, в таблице на неё хранится ссылка с макимальной длиной 150 символов.
 
 ```
-CREATE TABLE themes (
-    id int UNIQUE PRIMARY KEY NOT NULL AUTO_INCREMENT,
-    dttmcr timestamp NOT NULL default now(),
+CREATE TABLE IF NOT EXISTS themes (
+    id int PRIMARY KEY AUTO_INCREMENT,
+    dttmcr timestamp NOT NULL default CURRENT_TIMESTAMP,
     theme varchar(100) UNIQUE NOT NULL,
-    picture_link varchar(150) NOT NULL,
+    image_link varchar(255) NOT NULL,
     description varchar(255)
 );
 ```
@@ -60,9 +60,9 @@ CREATE TABLE themes (
 Внутри темы тесты разбиваются по категориям. У каждой категории есть ссылка на идентификатор темы, к которой она относится. Название категории достаточно короткое, в пределах 100 символов. Есть небольшое описание description, которое может быть внешним. Категории создаются разработчиками.
 
 ```
-CREATE TABLE categories (
-    id int UNIQUE PRIMARY KEY NOT NULL AUTO_INCREMENT,
-    dttmcr timestamp NOT NULL default now(),
+CREATE TABLE IF NOT EXISTS categories (
+    id int PRIMARY KEY AUTO_INCREMENT,
+    dttmcr timestamp NOT NULL default CURRENT_TIMESTAMP,
     theme_id int NOT NULL,
     category varchar(100) NOT NULL,
     description varchar(255)
@@ -84,16 +84,16 @@ CREATE TABLE categories (
 В поле test_config может записываться пользовательская конфигурация теста, например, количество вопросов для показа за одну игру, брать ли случайные вопросы и т.п. Специальных настроек может не быть, серфис предполагает наличие дефолтного конфига, поэтому это поле не обязательное. 
 
 ```
-CREATE TABLE tests (
-    id int UNIQUE PRIMARY KEY NOT NULL AUTO_INCREMENT,
-    dttmcr timestamp NOT NULL default now(),
+CREATE TABLE IF NOT EXISTS tests (
+    id int PRIMARY KEY AUTO_INCREMENT,
+    dttmcr timestamp NOT NULL default CURRENT_TIMESTAMP,
     user_id int NOT NULL, 
     category_id int NOT NULL,
     name varchar(120) NOT NULL, 
     description varchar(255), 
     test_config json,
-    is_public boolean DEFAULT 0,
-    status ENUM('in_progress', 'on_moderation', 'publicated')
+    is_public boolean DEFAULT FALSE,
+    status ENUM('in_progress', 'on_moderation', 'publicated', 'deleted') NOT NULL
 );
 ```
 
@@ -111,9 +111,9 @@ CREATE TABLE tests (
 Имеет короткое название и небольшое описание для внутреннего использования. Каждый тип имеет свои настройки, собранные в конфиг с типом JSON, что позволяет расширять конфиги в дальнейшем. Типов вопросов будет немного, поэтому JSON будет быстро парситься. 
 
 ```
-CREATE TABLE question_types (
-    id int UNIQUE PRIMARY KEY NOT NULL AUTO_INCREMENT,
-    dttmcr timestamp NOT NULL default now(),
+CREATE TABLE IF NOT EXISTS question_types (
+    id int PRIMARY KEY AUTO_INCREMENT,
+    dttmcr timestamp NOT NULL default CURRENT_TIMESTAMP,
     type_name varchar(100) NOT NULL,
     description varchar(255),
     config json 
@@ -128,9 +128,9 @@ CREATE TABLE question_types (
 Возможно, ответы для вопросов можно было бы собрать в поле с типом json вместо того, чтобы выносить в отдельную таблицу.
 
 ```
-CREATE TABLE questions (
-    id int UNIQUE PRIMARY KEY NOT NULL AUTO_INCREMENT,
-    dttmcr timestamp NOT NULL default now(),
+CREATE TABLE IF NOT EXISTS questions (
+    id int PRIMARY KEY AUTO_INCREMENT,
+    dttmcr timestamp NOT NULL default CURRENT_TIMESTAMP,
     test_id int NOT NULL,
     question varchar(255) NOT NULL,
     description varchar(400),
@@ -152,18 +152,18 @@ CREATE TABLE questions (
 Списки ответов на вопросы конкретных тестов.
 Для каждого вопроса предполагается 4 варианта ответа. 
 Один или более ответов могут быть правильными, но обязательно один из ответов должен быть правильным.
-Правильные ответы отмечаются единичкой в поле is_right c типом boolean. Добавлено дефолтное значение 0, которое говорит о том, что по умолчанию ответ считается неверным. 
+Правильные ответы отмечаются единичкой в поле is_right c типом boolean. Добавлено дефолтное значение FALSE, которое говорит о том, что по умолчанию ответ считается неверным. 
 У каждого ответа есть обязательная ссылка на вопрос (поле question_id).
 Ответ может содержать иллюстрацию (поле image_link).
 
 ```
-CREATE TABLE answers (
-    id int UNIQUE PRIMARY KEY NOT NULL AUTO_INCREMENT,
-    dttmcr timestamp NOT NULL default now(),
+CREATE TABLE IF NOT EXISTS answers (
+    id int PRIMARY KEY AUTO_INCREMENT,
+    dttmcr timestamp NOT NULL default CURRENT_TIMESTAMP,
     question_id int NOT NULL,
     answer varchar(255) NOT NULL, 
     image_link varchar(255),
-    is_right boolean DEFAULT 0 
+    is_right boolean NOT NULL DEFAULT FALSE 
 );
 ```
 
@@ -179,14 +179,14 @@ CREATE TABLE answers (
 В поле right_answers_amount записывается количество вопросов, на которые игрок дал правильные ответы. Значение пополняется на +1 при записи правильного ответа в таблицу game_answers.
 
 ```
-CREATE TABLE games (
-    id int UNIQUE PRIMARY KEY NOT NULL AUTO_INCREMENT,
-    dttmcr timestamp NOT NULL default now(),
+CREATE TABLE IF NOT EXISTS games (
+    id int PRIMARY KEY AUTO_INCREMENT,
+    dttmcr timestamp NOT NULL default CURRENT_TIMESTAMP,
     dttmend timestamp,
     user_id int NOT NULL,
     test_id int NOT NULL,
-    test_questions_amount tinyint NOT NULL, 
-    right_answers_amount tinyint NOT NULL DEFAULT 0
+    test_questions_amount tinyint UNSIGNED NOT NULL, 
+    right_answers_amount tinyint UNSIGNED NOT NULL DEFAULT 0
 );
 ```
 
@@ -204,16 +204,16 @@ CREATE TABLE games (
 Поля с идентификаторами игры и вопроса - обязательные.
 В поле answers записывается json с ответами, которые дал пользователь, это удобно, если ответов предполагается много.
 В поле result с типом boolean записывается, правильно ли пользователь ответил на вопрос или нет. 
-По умолчанию стоит значение 0 - пользователь ответил неверно.
+По умолчанию стоит значение FALSE - пользователь ответил неверно.
 
 ```
-CREATE TABLE game_answers (
-    id int UNIQUE PRIMARY KEY NOT NULL AUTO_INCREMENT,
-    dttmcr timestamp NOT NULL default now(),
+CREATE TABLE IF NOT EXISTS game_answers (
+    id int PRIMARY KEY AUTO_INCREMENT,
+    dttmcr timestamp NOT NULL default CURRENT_TIMESTAMP,
     game_id int NOT NULL,
     question_id int NOT NULL,
     answers json, 
-    result boolean DEFAULT 0 
+    result boolean NOT NULL DEFAULT FALSE 
 );
 ```
 
