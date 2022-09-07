@@ -83,6 +83,16 @@ CREATE TABLE IF NOT EXISTS categories (
 
 В поле test_config может записываться пользовательская конфигурация теста, например, количество вопросов для показа за одну игру, брать ли случайные вопросы и т.п. Специальных настроек может не быть, серфис предполагает наличие дефолтного конфига, поэтому это поле не обязательное. 
 
+Пример структуры JSON test_config:
+
+```
+{
+    "custom_questions_amount": 12,
+    "shuffled_questions": true,
+    "shuffled_answers": true
+}
+```
+
 ```
 CREATE TABLE IF NOT EXISTS tests (
     id int PRIMARY KEY AUTO_INCREMENT,
