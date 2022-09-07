@@ -241,9 +241,11 @@ CREATE TABLE IF NOT EXISTS game_answers (
 ### Пример добавления нового пользователя
 
 ```
-INSERT INTO users (nick, bdate, email, password_hash)
+INSERT INTO users (nick, bdate, email, password_hash, referrer_id)
 VALUES
-('SunFlower', '1990-10-05', 'sun_flower1990@gmail.com', '608333adc72f545078ede3aad71bfe74');
+('admin', '1998-05-20', 'admin@quizgame.com', '21232f297a57a5a743894a0e4a801fc3', NULL),
+('SunFlower', '1990-10-05', 'sun_flower1990@gmail.com', '608333adc72f545078ede3aad71bfe74', 1),
+('Vasya', '2000-11-13', 'vasyan@bk.ru', '49f68a5c8493ec2c0bf489821c21fc3b', NULL);
 ```
 
 ### Пример добавления темы
@@ -251,7 +253,9 @@ VALUES
 ```
 INSERT INTO themes (theme, image_link, description)
 VALUES 
-('Программирование', 'images/progr.png', 'Данная тема объединяет тесты по различным языкам программирования: как клиентским, так и серверным');
+('Программирование', 'images/progr.png', 'Данная тема объединяет тесты по различным языкам программирования: как клиентским, так и серверным'),
+('Математика', 'images/math.png', 'Данная тема объединяет тесты по различным аспектам математики'),
+('Биология', 'images/biol.png', 'Данная тема объединяет тесты по различным направлениям биологии');
 ```
 
 ### Пример добавления категории
@@ -259,7 +263,9 @@ VALUES
 ```
 INSERT INTO categories (theme_id, category, description)
 VALUES
-(1, 'SQL', 'SQL - язык структурированных запросов. Данная категория содержит тесты как по стандарту SQL, так и по реализациям различных баз данных');
+(1, 'SQL', 'SQL - язык структурированных запросов. Данная категория содержит тесты как по стандарту SQL, так и по реализациям различных баз данных'),
+(2, 'Алгебра 6 класс', 'Школьный курс алгебры за 6 класс'),
+(3, 'Ботаника', 'Школьный курс ботаники');
 ```
 
 ### Пример добавления типов вопросов тестов
@@ -277,7 +283,7 @@ VALUES
 ```
 INSERT INTO tests (user_id, category_id, name, description, test_config, is_public, status)
 VALUES
-(1, 1, 'SQL уровень 1', 'Тест для проверки базовых навыков DML', '{ "custom_questions_amount": 12, "shuffled_answers": true }', TRUE, 'in_progress');
+(2, 1, 'SQL уровень 1', 'Тест для проверки базовых навыков DML', '{ "custom_questions_amount": 12, "shuffled_answers": true }', TRUE, 'in_progress');
 ```
 
 ### Пример добавления одного вопроса для теста
