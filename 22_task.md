@@ -271,7 +271,7 @@ VALUES
 ### Пример добавления типов вопросов тестов
 
 ```
-INSERT INTO tests (type_name, description, config)
+INSERT INTO question_types (type_name, description, config)
 VALUES
 ('simple_match', 'Простое соотвествие: выбрать правильные ответы', NULL),
 ('pairs_match', 'Сопоставить "термины" и "определения"', '{ "module": "pairs", "terms": "left" }'),
