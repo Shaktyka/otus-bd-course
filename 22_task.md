@@ -66,7 +66,7 @@ CREATE TABLE IF NOT EXISTS categories (
     dttmcr timestamp NOT NULL default CURRENT_TIMESTAMP,
     theme_id int NOT NULL,
     category varchar(100) NOT NULL,
-    description varchar(255)
+    description varchar(200)
 );
 ```
 
@@ -246,6 +246,32 @@ VALUES
 ('SunFlower', '1990-10-05', 'sun_flower1990@gmail.com', '608333adc72f545078ede3aad71bfe74');
 ```
 
+### Пример добавления темы
+
+```
+INSERT INTO themes (theme, image_link, description)
+VALUES 
+('Программирование', 'images/progr.png', 'Данная тема объединяет тесты по различным языкам программирования: как клиентским, так и серверным');
+```
+
+### Пример добавления категории
+
+```
+INSERT INTO categories (theme_id, category, description)
+VALUES
+(1, 'SQL', 'SQL - язык структурированных запросов. Данная категория содержит тесты как по стандарту SQL, так и по реализациям различных баз данных');
+```
+
+### Пример добавления типов вопросов тестов
+
+```
+INSERT INTO tests (type_name, description, config)
+VALUES
+('simple_match', 'Простое соотвествие: выбрать правильные ответы', NULL),
+('pairs_match', 'Сопоставить "термины" и "определения"', '{ "module": "pairs", "terms": "left" }'),
+('constructor', 'Составить ответ, используя его части', '{ "module": "constructor", "align": "center" }');
+```
+
 ### Пример добавления теста
 
 ```
@@ -257,9 +283,9 @@ VALUES
 ### Пример добавления одного вопроса для теста
 
 ```
-INSERT INTO questions (question, description, question_type_id )
+INSERT INTO questions (test_id, question, description, question_type_id )
 VALUES
-('Команда, используемая для добавления данных в таблицу', NULL, 1)
+(1, 'Команда, используемая для добавления данных в таблицу', NULL, 1);
 ```
 
 ### Пример добавления ответов для теста
@@ -268,7 +294,7 @@ VALUES
 INSERT INTO answers (question_id, answer, is_right )
 VALUES
 (1, 'SELECT', FALSE),
-(1, 'UPDATE', FALSE)
-(1, 'INSERT', TRUE)
-(1, 'DROP', FALSE)
+(1, 'UPDATE', FALSE),
+(1, 'INSERT', TRUE),
+(1, 'DROP', FALSE);
 ```
