@@ -29,7 +29,7 @@
 ```
 CREATE TABLE IF NOT EXISTS users (
     id int PRIMARY KEY AUTO_INCREMENT,
-    dttmcr timestamp NOT NULL default CURRENT_TIMESTAMP,
+    created_at timestamp NOT NULL default CURRENT_TIMESTAMP,
     nick varchar(100) NOT NULL,
     bdate date,
     email varchar(100) UNIQUE NOT NULL,
@@ -49,7 +49,7 @@ CREATE TABLE IF NOT EXISTS users (
 ```
 CREATE TABLE IF NOT EXISTS themes (
     id int PRIMARY KEY AUTO_INCREMENT,
-    dttmcr timestamp NOT NULL default CURRENT_TIMESTAMP,
+    created_at timestamp NOT NULL default CURRENT_TIMESTAMP,
     theme varchar(100) UNIQUE NOT NULL,
     image_link varchar(255) NOT NULL,
     description varchar(255)
@@ -63,7 +63,7 @@ CREATE TABLE IF NOT EXISTS themes (
 ```
 CREATE TABLE IF NOT EXISTS categories (
     id int PRIMARY KEY AUTO_INCREMENT,
-    dttmcr timestamp NOT NULL default CURRENT_TIMESTAMP,
+    created_at timestamp NOT NULL default CURRENT_TIMESTAMP,
     theme_id int NOT NULL,
     category varchar(100) NOT NULL,
     description varchar(200)
@@ -97,7 +97,7 @@ CREATE TABLE IF NOT EXISTS categories (
 ```
 CREATE TABLE IF NOT EXISTS tests (
     id int PRIMARY KEY AUTO_INCREMENT,
-    dttmcr timestamp NOT NULL default CURRENT_TIMESTAMP,
+    created_at timestamp NOT NULL default CURRENT_TIMESTAMP,
     user_id int NOT NULL, 
     category_id int NOT NULL,
     name varchar(120) NOT NULL, 
@@ -124,7 +124,7 @@ CREATE TABLE IF NOT EXISTS tests (
 ```
 CREATE TABLE IF NOT EXISTS question_types (
     id int PRIMARY KEY AUTO_INCREMENT,
-    dttmcr timestamp NOT NULL default CURRENT_TIMESTAMP,
+    created_at timestamp NOT NULL default CURRENT_TIMESTAMP,
     type_name varchar(100) NOT NULL,
     description varchar(255),
     config json 
@@ -141,7 +141,7 @@ CREATE TABLE IF NOT EXISTS question_types (
 ```
 CREATE TABLE IF NOT EXISTS questions (
     id int PRIMARY KEY AUTO_INCREMENT,
-    dttmcr timestamp NOT NULL default CURRENT_TIMESTAMP,
+    created_at timestamp NOT NULL default CURRENT_TIMESTAMP,
     test_id int NOT NULL,
     question varchar(255) NOT NULL,
     description varchar(400),
@@ -170,7 +170,7 @@ CREATE TABLE IF NOT EXISTS questions (
 ```
 CREATE TABLE IF NOT EXISTS answers (
     id int PRIMARY KEY AUTO_INCREMENT,
-    dttmcr timestamp NOT NULL default CURRENT_TIMESTAMP,
+    created_at timestamp NOT NULL default CURRENT_TIMESTAMP,
     question_id int NOT NULL,
     answer varchar(255) NOT NULL, 
     image_link varchar(255),
@@ -192,7 +192,7 @@ CREATE TABLE IF NOT EXISTS answers (
 ```
 CREATE TABLE IF NOT EXISTS games (
     id int PRIMARY KEY AUTO_INCREMENT,
-    dttmcr timestamp NOT NULL default CURRENT_TIMESTAMP,
+    created_at timestamp NOT NULL default CURRENT_TIMESTAMP,
     dttmend timestamp,
     user_id int NOT NULL,
     test_id int NOT NULL,
@@ -220,7 +220,7 @@ CREATE TABLE IF NOT EXISTS games (
 ```
 CREATE TABLE IF NOT EXISTS game_answers (
     id int PRIMARY KEY AUTO_INCREMENT,
-    dttmcr timestamp NOT NULL default CURRENT_TIMESTAMP,
+    created_at timestamp NOT NULL default CURRENT_TIMESTAMP,
     game_id int NOT NULL,
     question_id int NOT NULL,
     answers json, 
@@ -341,7 +341,7 @@ VALUES
 ### Пример добавления запусков тестов пользователями
 
 ```
-INSERT INTO games (dttmcr, user_id, test_id, test_questions_amount, right_answers_amount)
+INSERT INTO games (created_at, user_id, test_id, test_questions_amount, right_answers_amount)
 VALUES
     ( DATE_SUB(now(), INTERVAL 2 DAY), 3, 2, 5, 2 ),
     ( DATE_SUB(now(), INTERVAL 1 DAY), 3, 2, 5, 5 ),
