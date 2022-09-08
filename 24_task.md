@@ -32,32 +32,75 @@ ORDER BY u.dttmcr;
 
 Опишите, для чего вам в проекте нужна такая выборка данных.
 
-### 1
+### Выбрать пользователей, зарегистрировавшихся в августе 2022 года
+
+Такие выборки могут использоваться для когортного анализа, например, для подсчёта количества успешно пройденных тестов по каждому пользователю (см. ниже).
 
 ```
-
+SELECT 
+    u.id
+FROM users AS u
+WHERE MONTH(u.dttmcr) = 8 AND YEAR(u.dttmcr) = 2022;
 ```
 
-### 2
+### Выбрать идентификаторы определённой группы пользователей и количество успешно пройденных ими тестов
+
+Запрос с подзапросом и использованием IN.
 
 ```
-
+SELECT
+    g.user_id,
+    count(*) as win_games
+FROM games AS g
+WHERE g.user_id IN (
+    SELECT 
+        u.id
+    FROM users AS u
+    WHERE MONTH(u.dttmcr) = 8 AND YEAR(u.dttmcr) = 2022
+)
+WHERE g.test_questions_amount = g.right_answers_amount
+GROUP BY g.user_id;
 ```
 
-### 3
+### Выбрать все тесты для 9 класса
+
+В приложении есть простой поиск по названиям тестов.
 
 ```
-
+SELECT
+  t.id,
+  DATE_FORMAT(t.dttmcr, '%m.%d.%Y') AS dt_create,
+  u.nick,
+  c.category,
+  t.name,
+  t.description,
+  t.test_config
+FROM tests AS t
+INNER JOIN users AS u ON t.user_id = u.id
+INNER JOIN categories AS c ON t.category_id = c.id
+WHERE 
+    t.name LIKE '%SQL%'
+    AND t.is_public = TRUE
+    AND t.status = 'publicated'
+ORDER BY t.name;
 ```
 
-### 4
+### Найти тесты, которые были пройдены менее, чем на 30%
+
+Предполагам, что такие тесты либо слишком сложные, либо скучные и нужно решить, что с ними делать, чтобы снизить отвал пользователей.
+
+
+
+### Посчитать, сколько тестов запускалось по дням с 1 по 10 сентября включительно
+
+Хотим оценить вовлечённость пользователей в первой декаде сентября, и если это количество ниже наших метрик, предпринять действия для повышения активности.
 
 ```
-
-```
-
-### 5
-
-```
-
+SELECT 
+    DATE(t.dttmcr) as date,
+    count(*) AS tests_amount
+FROM games AS t
+WHERE DATE(t.dttmcr) BETWEEN '2022-09-01' AND '2022-09-10'
+GROUP BY DATE(t.dttmcr)
+ORDER BY date;
 ```

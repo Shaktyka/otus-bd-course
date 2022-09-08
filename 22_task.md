@@ -238,7 +238,7 @@ CREATE TABLE IF NOT EXISTS game_answers (
 
 ## Примеры запросов добавления данных
 
-### Пример добавления нового пользователя
+### Пример добавления пользователей
 
 ```
 INSERT INTO users (nick, bdate, email, password_hash, referrer_id)
@@ -248,7 +248,7 @@ VALUES
 ('Vasya', '2000-11-13', 'vasyan@bk.ru', '49f68a5c8493ec2c0bf489821c21fc3b', NULL);
 ```
 
-### Пример добавления темы
+### Пример добавления тем
 
 ```
 INSERT INTO themes (theme, image_link, description)
@@ -258,14 +258,15 @@ VALUES
 ('Биология', 'images/biol.png', 'Данная тема объединяет тесты по различным направлениям биологии');
 ```
 
-### Пример добавления категории
+### Пример добавления категорий
 
 ```
 INSERT INTO categories (theme_id, category, description)
 VALUES
 (1, 'SQL', 'SQL - язык структурированных запросов. Данная категория содержит тесты как по стандарту SQL, так и по реализациям различных баз данных'),
 (2, 'Алгебра 6 класс', 'Школьный курс алгебры за 6 класс'),
-(3, 'Ботаника', 'Школьный курс ботаники');
+(3, 'Ботаника', 'Школьный курс ботаники'),
+(1, 'Машинное обучение', 'Всё о машинном обучении');
 ```
 
 ### Пример добавления типов вопросов тестов
@@ -278,20 +279,26 @@ VALUES
 ('constructor', 'Составить ответ, используя его части', '{ "module": "constructor", "align": "center" }');
 ```
 
-### Пример добавления теста
+### Пример добавления тестов
 
 ```
 INSERT INTO tests (user_id, category_id, name, description, test_config, is_public, status)
 VALUES
-(2, 1, 'SQL уровень 1', 'Тест для проверки базовых навыков DML', '{ "custom_questions_amount": 12, "shuffled_answers": true }', TRUE, 'in_progress');
+(2, 1, 'SQL уровень 1', 'Тест для проверки базовых навыков DML', '{ "custom_questions_amount": 12, "shuffled_answers": true }', TRUE, 'published'),
+(2, 1, 'DDL (data definition language)', 'Тест для проверки владения DML', '{ "custom_questions_amount": 5, "shuffled_answers": true }', TRUE, 'in_progress');
 ```
 
-### Пример добавления одного вопроса для теста
+### Пример добавления вопросов для теста
 
 ```
 INSERT INTO questions (test_id, question, description, question_type_id )
 VALUES
-(1, 'Команда, используемая для добавления данных в таблицу', NULL, 1);
+(1, 'Команда, используемая для добавления данных в таблицу', NULL, 1),
+(2, 'Команда, используемая для добавления столбца в таблицу', NULL, 1),
+(2, 'Выберите правильный запрос создания таблицы', NULL, 1),
+(2, 'Команда для удаления таблицы', NULL, 1),
+(2, 'Как называется столбец, значение которого вычисляется из других?', NULL, 1),
+(2, 'Выберите команды, НЕ являющиеся ограничением', NULL, 1);
 ```
 
 ### Пример добавления ответов для теста
@@ -302,5 +309,51 @@ VALUES
 (1, 'SELECT', FALSE),
 (1, 'UPDATE', FALSE),
 (1, 'INSERT', TRUE),
-(1, 'DROP', FALSE);
+(1, 'DROP', FALSE),
+
+(2, 'CREATE COLUMN', FALSE),
+(2, 'ADD COLUMN', TRUE),
+(2, 'ALTER TABLE', FALSE),
+(2, 'ADD CONSTRAINT', FALSE),
+
+(3, 'CREATE TABLE products (столбец1, столбец2)', FALSE),
+(3, 'CREATE TABLE products ADD COLUMNS (столбец1 тип столбца, столбец2 тип столбца)', FALSE),
+(3, 'CREATE TABLE products', FALSE),
+(3, 'CREATE TABLE products (столбец1 тип столбца, столбец2 тип столбца)', TRUE),
+
+(4, 'DROP TABLE', TRUE),
+(4, 'DELETE TABLE', FALSE),
+(4, 'TRUNCATE TABLE', FALSE),
+(4, 'CLEAR TABLE', FALSE),
+
+(5, 'Вычисляемый', FALSE),
+(5, 'Генерируемый', TRUE),
+(5, 'Производный', FALSE),
+(5, 'Компилируемый', FALSE),
+
+(6, 'NOT NULL', FALSE),
+(6, 'UNIQUE', FALSE),
+(6, 'CHECK', FALSE),
+(6, 'VALID', TRUE),
+(6, 'DUPLICATE', TRUE);
+```
+
+### Пример добавления запусков тестов пользователями
+
+```
+INSERT INTO games (dttmcr, user_id, test_id, test_questions_amount, right_answers_amount)
+VALUES
+    ( DATE_SUB(now(), INTERVAL 2 DAY), 3, 2, 5, 2 ),
+    ( DATE_SUB(now(), INTERVAL 1 DAY), 3, 2, 5, 5 ),
+    ( now(), 3, 1, 9, 0 );
+```
+
+### Пример добавления ответов пользователей на вопросы тестов
+
+```
+INSERT INTO game_answers (game_id, question_id, answers, result)
+VALUES
+    ( 1, 2, '{ "answers": "6" }', TRUE ),
+    ( 1, 2, '{ "answers": "11" }', FALSE ),
+    ( 1, 2, '{ "answers": "13,14" }', FALSE );
 ```
