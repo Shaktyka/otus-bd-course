@@ -174,6 +174,7 @@ CREATE TABLE IF NOT EXISTS question_types (
 
 Для типа игры на нахождение пар (сопоставление) структура данных будет следующей:
 
+```
 {
     "terms": [
         {
@@ -196,6 +197,7 @@ CREATE TABLE IF NOT EXISTS question_types (
         }
     ]
 }
+```
 
 Для этого варианта структура данных ответа будет в виде вложенных массивов, т.к. важно точное сопоставление термина и определения: `[ [1, 3], [2, 4] ]`
 
@@ -313,7 +315,7 @@ VALUES
 ### Пример добавления типов вопросов тестов
 
 ```
-INSERT INTO question_types (type_name, description, config)
+INSERT INTO question_types (code, name, description, config)
 VALUES
 ('simple_match', 'Простое соотвествие: выбрать правильные ответы', NULL),
 ('pairs_match', 'Сопоставить "термины" и "определения"', '{ "module": "pairs", "terms": "left" }'),
@@ -329,56 +331,6 @@ VALUES
 (2, 1, 'DDL (data definition language)', 'Тест для проверки владения DML', '{ "custom_questions_amount": 5, "shuffled_answers": true }', TRUE, 'in_progress');
 ```
 
-### Пример добавления вопросов для теста
-
-```
-INSERT INTO questions (test_id, question, description, question_type_id )
-VALUES
-(1, 'Команда, используемая для добавления данных в таблицу', NULL, 1),
-(2, 'Команда, используемая для добавления столбца в таблицу', NULL, 1),
-(2, 'Выберите правильный запрос создания таблицы', NULL, 1),
-(2, 'Команда для удаления таблицы', NULL, 1),
-(2, 'Как называется столбец, значение которого вычисляется из других?', NULL, 1),
-(2, 'Выберите команды, НЕ являющиеся ограничением', NULL, 1);
-```
-
-### Пример добавления ответов для теста
-
-```
-INSERT INTO answers (question_id, answer, is_right )
-VALUES
-(1, 'SELECT', FALSE),
-(1, 'UPDATE', FALSE),
-(1, 'INSERT', TRUE),
-(1, 'DROP', FALSE),
-
-(2, 'CREATE COLUMN', FALSE),
-(2, 'ADD COLUMN', TRUE),
-(2, 'ALTER TABLE', FALSE),
-(2, 'ADD CONSTRAINT', FALSE),
-
-(3, 'CREATE TABLE products (столбец1, столбец2)', FALSE),
-(3, 'CREATE TABLE products ADD COLUMNS (столбец1 тип столбца, столбец2 тип столбца)', FALSE),
-(3, 'CREATE TABLE products', FALSE),
-(3, 'CREATE TABLE products (столбец1 тип столбца, столбец2 тип столбца)', TRUE),
-
-(4, 'DROP TABLE', TRUE),
-(4, 'DELETE TABLE', FALSE),
-(4, 'TRUNCATE TABLE', FALSE),
-(4, 'CLEAR TABLE', FALSE),
-
-(5, 'Вычисляемый', FALSE),
-(5, 'Генерируемый', TRUE),
-(5, 'Производный', FALSE),
-(5, 'Компилируемый', FALSE),
-
-(6, 'NOT NULL', FALSE),
-(6, 'UNIQUE', FALSE),
-(6, 'CHECK', FALSE),
-(6, 'VALID', TRUE),
-(6, 'DUPLICATE', TRUE);
-```
-
 ### Пример добавления запусков тестов пользователями
 
 ```
@@ -387,14 +339,4 @@ VALUES
     ( DATE_SUB(now(), INTERVAL 2 DAY), 3, 2, 5, 2 ),
     ( DATE_SUB(now(), INTERVAL 1 DAY), 3, 2, 5, 5 ),
     ( now(), 3, 1, 9, 0 );
-```
-
-### Пример добавления ответов пользователей на вопросы тестов
-
-```
-INSERT INTO game_answers (game_id, question_id, answers, result)
-VALUES
-    ( 1, 2, '{ "answers": "6" }', TRUE ),
-    ( 1, 2, '{ "answers": "11" }', FALSE ),
-    ( 1, 2, '{ "answers": "13,14" }', FALSE );
 ```
