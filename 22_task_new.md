@@ -317,9 +317,9 @@ VALUES
 ```
 INSERT INTO question_types (code, name, description, config)
 VALUES
-('simple_match', 'Простое соотвествие: выбрать правильные ответы', NULL),
-('pairs_match', 'Сопоставить "термины" и "определения"', '{ "module": "pairs", "terms": "left" }'),
-('constructor', 'Составить ответ, используя его части', '{ "module": "constructor", "align": "center" }');
+('simple_match', 'Выбери ответ', 'Простое соотвествие: выбрать правильные ответы', NULL),
+('pairs_match', 'Установи соотвествие', 'Сопоставить "термины" и "определения"', '{ "module": "pairs", "terms": "left" }'),
+('constructor', 'Составь последовательность', 'Составить ответ, используя его части', '{ "module": "constructor", "align": "center" }');
 ```
 
 ### Пример добавления тестов
@@ -331,7 +331,37 @@ VALUES
 (2, 1, 'DDL (data definition language)', 'Тест для проверки владения DML', '{ "custom_questions_amount": 5, "shuffled_answers": true }', TRUE, 'in_progress');
 ```
 
+### Пример добавления вопросов теста 
+
+```
+INSERT INTO questions (test_id, question_type_id, question, image_link, description, variants, right_variants)
+VALUES
+( 2, 1, 'Команда для добавления столбца в таблицу', NULL, 'Выберите верный ответ из представленных ниже', 
+'{
+    "terms": [
+        {
+            "variant_id": 1,
+            "text": "CREATE COLUMN"
+        },
+        {
+            "variant_id": 2,
+            "text": "ADD COLUMN"
+        },
+        {
+            "variant_id": 3,
+            "text": "ALTER TABLE"
+        },
+        {
+            "variant_id": 4,
+            "text": "ADD CONSTRAINT"
+        }
+    ]
+}', '[2, 3]' );
+```
+
 ### Пример добавления запусков тестов пользователями
+
+Этот запрос - для начального добавления тестовых значений:
 
 ```
 INSERT INTO games (created_at, user_id, test_id, test_questions_amount, right_answers_amount)
@@ -339,4 +369,20 @@ VALUES
     ( DATE_SUB(now(), INTERVAL 2 DAY), 3, 2, 5, 2 ),
     ( DATE_SUB(now(), INTERVAL 1 DAY), 3, 2, 5, 5 ),
     ( now(), 3, 1, 9, 0 );
+```
+
+При запуске теста пользователем запрос будет следующим:
+
+```
+INSERT INTO games (user_id, test_id, test_questions_amount, right_answers_amount)
+VALUES ( 3, 2, 10 );
+```
+
+### Пример добавления ответов на вопросы теста 
+
+Запрос при ответе пользователя:
+
+```
+INSERT INTO games (game_id, question_id, user_answer)
+VALUES ( 1, 1, '[2, 3]' );
 ```
