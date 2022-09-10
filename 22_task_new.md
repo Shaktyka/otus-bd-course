@@ -281,7 +281,7 @@ CREATE TABLE IF NOT EXISTS game_answers (
 
 ## Примеры запросов добавления данных
 
-### Пример добавления пользователей
+### Пример начального добавления пользователей
 
 ```
 INSERT INTO users (nick, bdate, email, password_hash, referrer_id)
@@ -291,7 +291,7 @@ VALUES
 ('Vasya', '2000-11-13', 'vasyan@bk.ru', '49f68a5c8493ec2c0bf489821c21fc3b', NULL);
 ```
 
-### Пример добавления тем
+### Пример добавления нескольких тем
 
 ```
 INSERT INTO themes (theme, image_link, description)
@@ -301,7 +301,7 @@ VALUES
 ('Биология', 'images/biol.png', 'Данная тема объединяет тесты по различным направлениям биологии');
 ```
 
-### Пример добавления категорий
+### Пример добавления нескольких категорий
 
 ```
 INSERT INTO categories (theme_id, category, description)
@@ -312,7 +312,7 @@ VALUES
 (1, 'Машинное обучение', 'Всё о машинном обучении');
 ```
 
-### Пример добавления типов вопросов тестов
+### Пример добавления нескольких типов вопросов тестов
 
 ```
 INSERT INTO question_types (code, name, description, config)
@@ -322,7 +322,7 @@ VALUES
 ('constructor', 'Составь последовательность', 'Составить ответ, используя его части', '{ "module": "constructor", "align": "center" }');
 ```
 
-### Пример добавления тестов
+### Пример добавления нескольких тестов
 
 ```
 INSERT INTO tests (user_id, category_id, name, description, test_config, is_public, status)
@@ -331,7 +331,7 @@ VALUES
 (2, 1, 'DDL (data definition language)', 'Тест для проверки владения DML', '{ "custom_questions_amount": 5, "shuffled_answers": true }', TRUE, 'in_progress');
 ```
 
-### Пример добавления вопросов теста 
+### Пример добавления вопроса теста 
 
 ```
 INSERT INTO questions (test_id, question_type_id, question, image_link, description, variants, right_variants)
