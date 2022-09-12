@@ -34,13 +34,13 @@ CREATE TABLE IF NOT EXISTS users (
     bdate date,
     email varchar(100) UNIQUE NOT NULL,
     password_hash varchar(32) NOT NULL,
-    referrer_id int
+    referrer_fk int
 );
 ```
 
 Внешний ключ на поле id этой же таблицы пользователей (id реферера):
 
-`ALTER TABLE users ADD FOREIGN KEY (referrer_id) REFERENCES users (id);`
+`ALTER TABLE users ADD FOREIGN KEY (referrer_fk) REFERENCES users (id);`
 
 ### Темы тестов
 
@@ -64,7 +64,7 @@ CREATE TABLE IF NOT EXISTS themes (
 CREATE TABLE IF NOT EXISTS categories (
     id int PRIMARY KEY AUTO_INCREMENT,
     created_at timestamp NOT NULL default CURRENT_TIMESTAMP,
-    theme_id int NOT NULL,
+    theme_fk int NOT NULL,
     category varchar(100) NOT NULL,
     description varchar(200)
 );
@@ -72,11 +72,11 @@ CREATE TABLE IF NOT EXISTS categories (
 
 Внешний ключ к таблице тем (themes):
 
-`ALTER TABLE categories ADD FOREIGN KEY (theme_id) REFERENCES themes (id);`
+`ALTER TABLE categories ADD FOREIGN KEY (theme_fk) REFERENCES themes (id);`
 
 ### Тесты
 
-Таблица для описания сущностей "тест". Тесты создаются разработчиками и пользователями, поэтому есть ссылка на таблицу пользователей (user_id). У теста может быть одна категория (ссылка category_id), достаточно длинное название и описание, которые отображаются на сайте.
+Таблица для описания сущностей "тест". Тесты создаются разработчиками и пользователями, поэтому есть ссылка на таблицу пользователей (user_fk). У теста может быть одна категория (ссылка category_fk), достаточно длинное название и описание, которые отображаются на сайте.
 
 Есть флаг is_public, который показывает, является ли тест "публичным", т.е. доступен ли всем пользователям сайта или нет.
 
@@ -98,8 +98,8 @@ CREATE TABLE IF NOT EXISTS categories (
 CREATE TABLE IF NOT EXISTS tests (
     id int PRIMARY KEY AUTO_INCREMENT,
     created_at timestamp NOT NULL default CURRENT_TIMESTAMP,
-    user_id int NOT NULL, 
-    category_id int NOT NULL,
+    user_fk int NOT NULL, 
+    category_fk int NOT NULL,
     name varchar(120) NOT NULL, 
     description varchar(255), 
     test_config json,
@@ -110,11 +110,11 @@ CREATE TABLE IF NOT EXISTS tests (
 
 Добавляет внешний ключ на таблицу пользователей:
 
-`ALTER TABLE tests ADD FOREIGN KEY (user_id) REFERENCES users (id);`
+`ALTER TABLE tests ADD FOREIGN KEY (user_fk) REFERENCES users (id);`
 
 Добавляет внешний ключ на таблицу категорий:
 
-`ALTER TABLE tests ADD FOREIGN KEY (category_id) REFERENCES categories (id);`
+`ALTER TABLE tests ADD FOREIGN KEY (category_fk) REFERENCES categories (id);`
 
 ### Типы вопросов
 
@@ -134,7 +134,7 @@ CREATE TABLE IF NOT EXISTS question_types (
 
 ### Вопросы теста
 
-Список вопросов, относящихся к тестам, - это определяется ссылкой на таблицу tests (поле test_id). Вопрос может иметь достаточно длинное название и описание, отображаемые на сайте. У каждого вопроса есть обязательная ссылка на тип вопроса - поле question_type_id.
+Список вопросов, относящихся к тестам, - это определяется ссылкой на таблицу tests (поле test_fk). Вопрос может иметь достаточно длинное название и описание, отображаемые на сайте. У каждого вопроса есть обязательная ссылка на тип вопроса - поле question_type_fk.
 У вопроса может быть иллюстрация, ссылка на неё в типе varchar записывается в поле image_link.
 
 Ответы на вопросы записываются в поле variants типа JSON. 
@@ -207,8 +207,8 @@ CREATE TABLE IF NOT EXISTS question_types (
 CREATE TABLE IF NOT EXISTS questions (
     id int PRIMARY KEY AUTO_INCREMENT,
     created_at timestamp NOT NULL default CURRENT_TIMESTAMP,
-    test_id int NOT NULL,
-    question_type_id int NOT NULL,
+    test_fk int NOT NULL,
+    question_type_fk int NOT NULL,
     question varchar(255) NOT NULL,
     image_link varchar(255),
     description varchar(400),
@@ -219,11 +219,11 @@ CREATE TABLE IF NOT EXISTS questions (
 
 Добавляет внешний ключ на таблицу tests:
 
-`ALTER TABLE questions ADD FOREIGN KEY (test_id) REFERENCES tests (id);`
+`ALTER TABLE questions ADD FOREIGN KEY (test_fk) REFERENCES tests (id);`
 
 Добавляет внешний ключ на таблицу question_types:
 
-`ALTER TABLE questions ADD FOREIGN KEY (question_type_id) REFERENCES question_types (id);`
+`ALTER TABLE questions ADD FOREIGN KEY (question_type_fk) REFERENCES question_types (id);`
 
 ### Прохождение тестов (запуск тестов)
 
@@ -237,8 +237,8 @@ CREATE TABLE IF NOT EXISTS games (
     id int PRIMARY KEY AUTO_INCREMENT,
     created_at timestamp NOT NULL default CURRENT_TIMESTAMP,
     finished_at timestamp,
-    user_id int NOT NULL,
-    test_id int NOT NULL,
+    user_fk int NOT NULL,
+    test_fk int NOT NULL,
     test_questions_amount tinyint UNSIGNED NOT NULL, 
     right_answers_amount tinyint UNSIGNED NOT NULL DEFAULT 0
 );
@@ -246,11 +246,11 @@ CREATE TABLE IF NOT EXISTS games (
 
 Добавляет внешний ключ на таблицу users:
 
-`ALTER TABLE games ADD FOREIGN KEY (user_id) REFERENCES users (id);`
+`ALTER TABLE games ADD FOREIGN KEY (user_fk) REFERENCES users (id);`
 
 Добавляет внешний ключ на таблицу tests:
 
-`ALTER TABLE games ADD FOREIGN KEY (test_id) REFERENCES tests (id);`
+`ALTER TABLE games ADD FOREIGN KEY (test_fk) REFERENCES tests (id);`
 
 ### Прохождение тестов (демонстрируемые вопросы)
 
@@ -264,8 +264,8 @@ CREATE TABLE IF NOT EXISTS games (
 CREATE TABLE IF NOT EXISTS game_answers (
     id int PRIMARY KEY AUTO_INCREMENT,
     created_at timestamp NOT NULL default CURRENT_TIMESTAMP,
-    game_id int NOT NULL,
-    question_id int NOT NULL,
+    game_fk int NOT NULL,
+    question_fk int NOT NULL,
     user_answer json, 
     result boolean NOT NULL DEFAULT FALSE 
 );
@@ -273,18 +273,18 @@ CREATE TABLE IF NOT EXISTS game_answers (
 
 Добавляет внешний ключ на таблицу games:
 
-`ALTER TABLE game_answers ADD FOREIGN KEY (game_id) REFERENCES games (id);`
+`ALTER TABLE game_answers ADD FOREIGN KEY (game_fk) REFERENCES games (id);`
 
 Добавляет внешний ключ на таблицу questions:
 
-`ALTER TABLE game_answers ADD FOREIGN KEY (question_id) REFERENCES questions (id);`
+`ALTER TABLE game_answers ADD FOREIGN KEY (question_fk) REFERENCES questions (id);`
 
 ## Примеры запросов добавления данных
 
 ### Пример начального добавления пользователей
 
 ```
-INSERT INTO users (nick, bdate, email, password_hash, referrer_id)
+INSERT INTO users (nick, bdate, email, password_hash, referrer_fk)
 VALUES
 ('admin', '1998-05-20', 'admin@quizgame.com', '21232f297a57a5a743894a0e4a801fc3', NULL),
 ('SunFlower', '1990-10-05', 'sun_flower1990@gmail.com', '608333adc72f545078ede3aad71bfe74', 1),
@@ -304,7 +304,7 @@ VALUES
 ### Пример добавления нескольких категорий
 
 ```
-INSERT INTO categories (theme_id, category, description)
+INSERT INTO categories (theme_fk, category, description)
 VALUES
 (1, 'SQL', 'SQL - язык структурированных запросов. Данная категория содержит тесты как по стандарту SQL, так и по реализациям различных баз данных'),
 (2, 'Алгебра 6 класс', 'Школьный курс алгебры за 6 класс'),
@@ -325,7 +325,7 @@ VALUES
 ### Пример добавления нескольких тестов
 
 ```
-INSERT INTO tests (user_id, category_id, name, description, test_config, is_public, status)
+INSERT INTO tests (user_fk, category_fk, name, description, test_config, is_public, status)
 VALUES
 (2, 1, 'SQL уровень 1', 'Тест для проверки базовых навыков DML', '{ "custom_questions_amount": 12, "shuffled_answers": true }', TRUE, 'published'),
 (2, 1, 'DDL (data definition language)', 'Тест для проверки владения DML', '{ "custom_questions_amount": 5, "shuffled_answers": true }', TRUE, 'in_progress');
@@ -334,7 +334,7 @@ VALUES
 ### Пример добавления вопроса теста 
 
 ```
-INSERT INTO questions (test_id, question_type_id, question, image_link, description, variants, right_variants)
+INSERT INTO questions (test_fk, question_type_fk, question, image_link, description, variants, right_variants)
 VALUES
 ( 2, 1, 'Команда для добавления столбца в таблицу', NULL, 'Выберите верный ответ из представленных ниже', 
 '{
@@ -364,7 +364,7 @@ VALUES
 Этот запрос - для начального добавления тестовых значений:
 
 ```
-INSERT INTO games (created_at, user_id, test_id, test_questions_amount, right_answers_amount)
+INSERT INTO games (created_at, user_fk, test_fk, test_questions_amount, right_answers_amount)
 VALUES
     ( DATE_SUB(now(), INTERVAL 2 DAY), 3, 2, 5, 2 ),
     ( DATE_SUB(now(), INTERVAL 1 DAY), 3, 2, 5, 5 ),
@@ -374,7 +374,7 @@ VALUES
 При запуске теста пользователем запрос будет следующим:
 
 ```
-INSERT INTO games (user_id, test_id, test_questions_amount, right_answers_amount)
+INSERT INTO games (user_fk, test_fk, test_questions_amount, right_answers_amount)
 VALUES ( 3, 2, 10 );
 ```
 
@@ -383,6 +383,6 @@ VALUES ( 3, 2, 10 );
 Запрос при ответе пользователя:
 
 ```
-INSERT INTO games (game_id, question_id, user_answer)
+INSERT INTO games (game_fk, question_fk, user_answer)
 VALUES ( 1, 1, '[2, 3]' );
 ```
