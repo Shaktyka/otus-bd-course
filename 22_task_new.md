@@ -125,7 +125,7 @@ CREATE TABLE IF NOT EXISTS tests (
 CREATE TABLE IF NOT EXISTS question_types (
     id int PRIMARY KEY AUTO_INCREMENT,
     created_at timestamp NOT NULL default CURRENT_TIMESTAMP,
-    code varchar(10) NOT NULL,
+    code varchar(15) NOT NULL,
     name varchar(100) NOT NULL,
     description varchar(200),
     config json 
@@ -168,7 +168,7 @@ CREATE TABLE IF NOT EXISTS question_types (
 }
 ```
 
-Правильные ответы предполагается записывать в массив JSON в поле right_variants, для данного вопроса [2, 3].
+Правильные ответы предполагается записывать в массив JSON в поле right_variants, для данного вопроса `[2, 3]`.
 Ответы пользователя также будут приходить в виде массива id вариантов, например, `[1, 2]`.
 Тогда легко будет сравнить правильные варианты и неправильные.
 
@@ -327,7 +327,7 @@ VALUES
 ```
 INSERT INTO tests (user_fk, category_fk, name, description, test_config, is_public, status)
 VALUES
-(2, 1, 'SQL уровень 1', 'Тест для проверки базовых навыков DML', '{ "custom_questions_amount": 12, "shuffled_answers": true }', TRUE, 'published'),
+(2, 1, 'SQL уровень 1', 'Тест для проверки базовых навыков DML', '{ "custom_questions_amount": 12, "shuffled_answers": true }', TRUE, 'publicated'),
 (2, 1, 'DDL (data definition language)', 'Тест для проверки владения DML', '{ "custom_questions_amount": 5, "shuffled_answers": true }', TRUE, 'in_progress');
 ```
 
@@ -383,6 +383,6 @@ VALUES ( 3, 2, 10 );
 Запрос при ответе пользователя:
 
 ```
-INSERT INTO games (game_fk, question_fk, user_answer)
+INSERT INTO game_answers (game_fk, question_fk, user_answer)
 VALUES ( 1, 1, '[2, 3]' );
 ```
