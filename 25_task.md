@@ -27,8 +27,6 @@ CREATE TABLE products (
 );
 ```
 
-Заменим в текстовом редакторе запятые в CSV на какой-то другой символ, которого нет в строках, чтобы не столкнуться к некорректным разбиением строк. Также нужно иметь в виду, что строки в текстовых данных могут разделяться символом переноса строки '\n', поэтому лучше использовать как разделитель '\r\n'.
-
 Файл будем сначала загружать на сервер, а потом уже в таблицу базы данных.
 
 Запрашиваем путь, куда можно загружать файлы на сервер для MySQL:
@@ -50,8 +48,9 @@ CREATE TABLE products (
 ```
 LOAD DATA INFILE '/var/lib/mysql-files/products_simple.csv' 
 INTO TABLE products 
-FIELDS TERMINATED BY '_'
-LINES TERMINATED BY '\r\n'
+FIELDS TERMINATED BY ','
+ENCLOSED BY '"'
+LINES TERMINATED BY '\n'
 IGNORE 1 LINES
 (article, @category, title, @short_descr, pacage, price)
 SET
