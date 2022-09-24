@@ -4,99 +4,89 @@
 
 C изменением данных в нескольких таблицах. Реализовать в виде хранимой процедуры.
 
-CREATE procedure insert_clients_data()
- 
-BEGIN
- 
-   DECLARE income INT;
-   SET income = 50;
-
- 
-END;
 
 ## Загрузить данные из приложенных в материалах csv.
 
+Так как на лекции было сказано, что важнее всё-таки загрузить данные, чем определить все 100500 столбцов таблицы, я, после многочисленных безуспешных попыток загрузить один из этих файлов, реализовала загрузку на более простом примере. В файле я специально имитировала NULL значения, чтобы было похоже на реальные данные. 
+
+(Данные в файле до имитации)[/images/product_data.png]
+
 ### Реализация через LOAD DATA
 
-Возьмём файл с данными по велосипедам:
-https://github.com/levinmejia/Shopify-Product-CSVs-and-Images/blob/master/CSVs/Bicycles.csv
-
-Создадим таблицу для загрузки данных:
+Создаём таблицу для загружаемых данных в БД
 
 ```
-CREATE TABLE data_table (
+CREATE TABLE products (
     id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    Handle TEXT,
-    Body TEXT,
-    Vendor TEXT,
-    Type TEXT,
-    Tags TEXT,
-    Published BOOLEAN,
-    Option1_Text TEXT,
-    Option1_Value TEXT,
-    Option2_Name TEXT,
-    Option2_Value TEXT,
-    Option3_Name TEXT,
-    Option3_Value TEXT,
-    Variant_SKU	TEXT,
-    Variant_Grams INT,
-    Variant_Inventory_Tracker TEXT,
-    Variant_Inventory_Qty int,
-    Variant_Inventory_Policy TEXT,
-    Variant_Fulfillment_Service TEXT,
-    Variant_Price DECIMAL,
-    Compare_At_Price DECIMAL,
-    Variant_Requires_Shipping BOOLEAN,
-    Variant_Taxable	BOOLEAN,
-    Variant_Barcode	TEXT,
-    Image_Src TEXT,
-    Image_Alt_Text TEXT,
-    Gift_Card BOOLEAN,	
-    SEO_Title TEXT,
-    SEO_Description TEXT,	
-    Google_Product_Category TEXT,
-    Gender TEXT,
-    Age_Group TEXT,	
-    MPN TEXT,
-    AdWords_Grouping TEXT,	
-    AdWords_Labels TEXT,	
-    `Condition` TEXT,
-    Custom_Product BOOLEAN,
-    Custom_Label_0 TEXT,	
-    Custom_Label_1 TEXT,	
-    Custom_Label_2 TEXT,	
-    Custom_Label_3 TEXT,
-    Custom_Label_4 TEXT,
-    Variant_Image TEXT,	
-    Variant_Weight_Unit TEXT
+    article text,
+    category text,
+    title text,
+    short_descr text,
+    pacage text,
+    price decimal
 );
 ```
 
-Установим разрешение на загрузку файлов:
+Заменим в текстовом редакторе запятые в CSV на какой-то другой символ, которого нет в строках, чтобы не столкнуться к некорректным разбиением строк. Также нужно иметь в виду, что строки в текстовых данных могут разделяться символом переноса строки '\n', поэтому лучше использовать как разделитель '\r\n'.
 
-`SET GLOBAL local_infile = true;`
+Файл будем сначала загружать на сервер, а потом уже в таблицу базы данных.
 
-Откуда можно загружать файлы:
+Запрашиваем путь, куда можно загружать файлы на сервер для MySQL:
 
 `SHOW VARIABLES LIKE "secure_file_priv";`
 
-Загрузим файл на сервер:
+Получаем `/var/lib/mysql-files/`
 
-`scp /Users/elena/Downloads/data_25/bycicles.csv root@more-mysql:/var/lib/mysql-files/`
+Из консоли на локальной машине загружаем файл на сервер с помощью scp:
 
-Команда для загрузки:
+`scp /Users/elena/Downloads/products_simple.csv root@more-mysql:/var/lib/mysql-files/`
+
+Файл на сервере:
+
+`-rw-r--r--  1 root  root    1527 Sep 24 15:56 products_simple.csv`
+
+Переходим в консоль mysql и загружаем данные в таблицу:
 
 ```
-LOAD DATA INFILE '/var/lib/mysql-files/bycicles.csv' 
-INTO TABLE data_table 
-FIELDS TERMINATED BY ','
-LINES TERMINATED BY '\n'
-IGNORE 1 LINES;
+LOAD DATA INFILE '/var/lib/mysql-files/products_simple.csv' 
+INTO TABLE products 
+FIELDS TERMINATED BY '_'
+LINES TERMINATED BY '\r\n'
+IGNORE 1 LINES
+(article, @category, title, @short_descr, pacage, price)
+SET
+short_descr = nullif(@short_descr,''),
+category = nullif(@category,'');
 ```
 
-После загрузки:
+Данные загружены:
 
-(скрин)
+```
+*************************** 1. row ***************************
+         id: 1
+    article: 1171417
+   category: КОФЕ В ЗЕРНАХ И МОЛОТЫЙ
+      title: Индия Монсунд Малабар
+short_descr: NULL
+     pacage: 250 г
+      price: 560
+*************************** 2. row ***************************
+         id: 2
+    article: 1171417
+   category: NULL
+      title: Индия Монсунд Малабар
+short_descr: В аромате свежая выпечка и яркие цветочные ноты
+     pacage: 1000 г
+      price: 2040
+*************************** 3. row ***************************
+         id: 3
+    article: 1171417
+   category: КОФЕ В ЗЕРНАХ И МОЛОТЫЙ
+      title: Индия Монсунд Малабар
+short_descr: В аромате свежая выпечка и яркие цветочные ноты
+     pacage: 2 по 1000
+      price: 4080
+```
 
 ### Реализация через mysqlimport
 
