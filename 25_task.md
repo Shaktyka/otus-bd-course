@@ -89,7 +89,50 @@ short_descr: В аромате свежая выпечка и яркие цве�
 
 ### Реализация через mysqlimport
 
+Запускаем из консоли сервера, настройки похожи на соответствующие для LOAD DATA.
 
+```
+mysqlimport --local -v -d --ignore-lines=1 --fields-terminated-by="," --lines-terminated-by="\n" --fields-optionally-enclosed-by='"' --columns=article,category,title,short_descr,pacage,price quizgame '/var/lib/mysql-files/products_simple.csv'
+```
+
+Результат выполнения:
+
+```
+Connecting to localhost
+Selecting database quizgame
+Loading data from LOCAL file: /var/lib/mysql-files/products_simple.csv into products_simple
+quizgame.products_simple: Records: 9  Deleted: 0  Skipped: 0  Warnings: 0
+Disconnecting from localhost
+```
+
+Результат выборки данных:
+
+```
+*************************** 1. row ***************************
+         id: 1
+    article: 1171417
+   category: КОФЕ В ЗЕРНАХ И МОЛОТЫЙ
+      title: Индия Монсунд Малабар
+short_descr: В аромате свежая выпечка и яркие цветочные ноты
+     pacage: 250 г
+      price: 560
+*************************** 2. row ***************************
+         id: 2
+    article: 1171417
+   category:
+      title: Индия Монсунд Малабар
+short_descr: В аромате свежая выпечка и яркие цветочные ноты
+     pacage: 1000 г
+      price: 2040
+*************************** 3. row ***************************
+         id: 3
+    article: 1171417
+   category: КОФЕ В ЗЕРНАХ И МОЛОТЫЙ
+      title: Индия Монсунд Малабар
+short_descr:
+     pacage: 2 по 1000
+      price: 4080
+```
 
 ## Реализация загрузки через fifo
 Задание повышенной сложности*
