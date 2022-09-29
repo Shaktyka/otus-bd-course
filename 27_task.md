@@ -77,19 +77,29 @@ AGAINST ('геометрия' IN NATURAL LANGUAGE MODE);
 
 `CREATE FULLTEXT INDEX idx_ft_name_desc ON tests(name, description);`
 
-Сейчас в таблице следующие данные:
-(скриншот)[]
+Сейчас в таблице следующие данные: [скриншот](/images/tests_table.jpg)
 
 Также можно добавить индексы на поля status (тип enum) и is_public (тип boolean).
 По статусам тестов будут выборки, чтобы выбирать тесты с определёнными статусами (на модерации, опубликован и др.).
 Флаг is_public показывает публичный тест или нет. Предполагаю, что публичных тестов будет гораздо меньше, чем приватных.
 
-Здесь имеет смысл сделать составной индекс на оба этих поля: status, is_public:
+Выборка данных без использования индекса:
 
+```
+EXPLAIN SELECT * FROM tests 
+WHERE 
+	status = 'on_moderation'
+    AND is_public = 0;
+```
+
+Результат EXPLAIN: перебор всех 14 строк
+`'1','SIMPLE','tests',NULL,'ALL',NULL,NULL,NULL,NULL,'14','7.14','Using where'`
+
+Деаем составной индекс на оба поля: status, is_public:
 `CREATE INDEX idx_status_is_public ON tests(status, is_public);` 
 
--- Сделать выборки и посмотреть
-
+Результат EXPLAIN после добавления индекса: использован индекс, выбрано 3 строки
+`'1','SIMPLE','tests',NULL,'ref','idx_tests_status','idx_tests_status','1','const','3','10.00','Using index condition; Using where'`
 
 *Типы вопросов* - question_types
 
@@ -99,7 +109,9 @@ AGAINST ('геометрия' IN NATURAL LANGUAGE MODE);
 
 Есть автоматически созданные индексы на полях test_fk (идентификатор теста, к которому относится вопрос) и question_type_fk (идентификатор типа вопроса).
 
--- Тут будет поиск по variants и right_variants (?)
+Имеет смысл добавить индекс на поле тип вопроса (question_type), т.к. по типам игр наверняка будет сниматься статистика для отслеживания прохождения.
+
+`CREATE INDEX idx_question_type ON questions(question_type_fk);`
 
 *Прохождение тестов (запуски)* - games
 
