@@ -3,82 +3,92 @@
 ## Описать пример транзакции из своего проекта 
 C изменением данных в нескольких таблицах. Реализовать в виде хранимой процедуры.
 
-Процедура должна добавить новые продукты и данные для них в БД за один раз. Предполагаем, что данные о продуктах мы загружаем, допустим, из CSV, превращаем их в JSON и отдаём на вход функци вставки.
-Данные о продуктах хранятся в таблице products.
-Данные о характеристиках хранятся в таблице characteristcs со ссылкой на products.
-Процедура принимает данные по продуктам и данные по характеристикам в массиве JSON.
-Перебираем массив, добавляем товар и если запись произошла добавляем характеристики.
-Надо проверить, что это - новый товар, и тогда делаем INSERT, иначе надо сделать UPDATE.
+Создадим процедуру, которая будет добавлять тест и вопросы для него, а также добавит записи в таблицу логирования. Схема базы данных - по ссылке https://dbdiagram.io/d/61cca2dc3205b45b73d13086 
 
--- Дату ещё учесть
+Процедура получит данные теста, а также список вопросов для него. Вопросы имеет смысл добавлять только после того, как будет добавлен сам тест. (Пример немного вырожденный, т.к., по идее, вопросы могут добавляться и после создания тестов, но для выполнения задания и демонстрации - ОК)
 
-Предполагаем, что структура данных может быть такой:
+Предполагаем, что процедура будет получать следующие структуры данных:
+
+Данные теста для таблицы тестов:
+```
+{
+    "user_id": 2, 
+    "category_id": 1, 
+    "name": "SQL DDL уровень 2", 
+    "description": "Тест для проверки продвинутых навыков написания DDL запросов", 
+    "test_config": null, 
+    "is_public": FALSE, 
+    "status": "new"
+}
+```
+
+Данные вопросов для таблицы вопросов:
+```
 [
     {
-        "title": "Кофе Мария",
-        "characteristics": [
-            {
-                "brand": "Chibo",
-                "country": "Mexico",
-                "pacage": "200 г",
-                "price": "450 р",
-                "amount": 10
-            }
-        ]
+        "question_type_fk": 1, 
+        "question": "Команда для добавления столбца в таблицу", 
+        "image_link": NULL, 
+        "description": "Выберите верный ответ из представленных ниже", 
+        "variants": {
+            "terms": [
+                {
+                    "variant_id": 1,
+                    "text": "CREATE COLUMN"
+                },
+                {
+                    "variant_id": 2,
+                    "text": "ADD COLUMN"
+                },
+                {
+                    "variant_id": 3,
+                    "text": "ALTER TABLE"
+                },
+                {
+                    "variant_id": 4,
+                    "text": "ADD CONSTRAINT"
+                }
+            ]
+        }, 
+        "right_variants": [2, 3]
     },
     {
-        "title": "Кофе Joanna",
-        "characteristics": [
-            {
-                "brand": "Golden Coffee",
-                "country": "UK",
-                "pacage": "500 г",
-                "price": "800 р",
-                "amount": 15
-            }
-        ]
-    },
-    {
-        "title": "Кофе Helen",
-        "characteristics": [
-            {
-                "brand": "Mega Cup",
-                "country": "Russia",
-                "pacage": "290 г",
-                "price": "599 р",
-                "amount": 9
-            }
-        ]
+        "question_type_fk": 1, 
+        "question": "Команда для удаления столбца из таблицы", 
+        "image_link": NULL, 
+        "description": "Выберите верный ответ из представленных ниже", 
+        "variants": {
+            "terms": [
+                {
+                    "variant_id": 1,
+                    "text": "DELETE COLUMN"
+                },
+                {
+                    "variant_id": 2,
+                    "text": "DROP COLUMN"
+                },
+                {
+                    "variant_id": 3,
+                    "text": "ALTER COLUMN"
+                },
+                {
+                    "variant_id": 4,
+                    "text": "THROW TABLE"
+                }
+            ]
+        }, 
+        "right_variants": [2]
     }
 ]
+```
 
--- Таблица продуктов:
-CREATE TABLE products (
-    id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    title varchar(150)
-);
+Определение процедуры:
 
--- Таблица характеристик:
-CREATE TABLE characteristics (
-    id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    product_id int NOT NULL UNSIGNED FOREIGN_KEY REFERENCES products(id),
-    brand varchar(120),
-    country varchar(100),
-    pacage varchar(20)
-);
 
--- Сама процедура
-CREATE procedure add_new_products_data(_products json, _characteristics json)
- 
-BEGIN
- 
-    BEGIN;
-    INSERT INTO user (id, nik) VALUES (1, 'nikola');
-    INSERT INTO user_info (id, id_user, item_name, item_value) VALUES (1, 1, 'Имя', 'Николай'); 
-    INSERT INTO user_info (id, id_user, item_name, item_value) VALUES (2, 1, 'Возраст', '24');
-    COMMIT;
 
-END;
+При успешной отработке процедуры данные будут добавлены во все 3 таблицы:
+
+
 
 ## Загрузить данные из приложенных в материалах csv.
 
