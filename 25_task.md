@@ -12,13 +12,13 @@ C изменением данных в нескольких таблицах. Р
 Данные теста для таблицы тестов:
 ```
 {
-    "user_id": 2, 
-    "category_id": 1, 
+    "user_fk": 2, 
+    "category_fk": 1, 
     "name": "SQL DDL уровень 2", 
     "description": "Тест для проверки продвинутых навыков написания DDL запросов", 
     "test_config": null, 
     "is_public": FALSE, 
-    "status": "new"
+    "status": "in_progress"
 }
 ```
 
@@ -50,7 +50,7 @@ C изменением данных в нескольких таблицах. Р
                 }
             ]
         }, 
-        "right_variants": [2, 3]
+        "right_variants": '[2, 3]'
     },
     {
         "question_type_fk": 1, 
@@ -77,22 +77,102 @@ C изменением данных в нескольких таблицах. Р
                 }
             ]
         }, 
-        "right_variants": [2]
+        "right_variants": '[2]'
     }
 ]
 ```
 
 Определение процедуры:
+```
+    DELIMITER $$
+    CREATE PROCEDURE pr_insert_test(
+        IN _test_data JSON,
+        IN _questions_data JSON
+    )
+    BEGIN
+	DECLARE _test_id INT;
+    DECLARE _result INT DEFAULT = 0; -- по умолчанию, результат - неудачная запись
+    
+    SET AUTOCOMMIT=0;
+    START TRANSACTION;
+    
+    -- Добавляем данные в таблицу тестов:
+    INSERT INTO tests (user_fk, category_fk, `name`, `description`, test_config, is_public, `status`)
+    VALUES (
+        _test_data->>"$.user_fk", 
+        _test_data->>"$.category_fk",
+        _test_data->>"$.name", 
+        _test_data->>"$.description",
+        _test_data->>"$.test_config", 
+        _test_data->>"$.is_public",
+        _test_data->>"$.status"
+	);
+    
+    SELECT LAST_INSERT_ID() INTO _test_id;
+    
+    IF _test_id IS NULL THEN
+        ROLLBACK;
+	
+    ELSE
+        
+        -- Добавляет записи в таблицу вопросов:
+        INSERT INTO questions (test_fk, question_type_fk, question, image_link, description, variants, right_variants)
+            SELECT
+                _test_id,
+                qd.question_type_fk,
+                qd.question,
+                qd.image_link,
+                qd.description,
+                qd.variants,
+                qd.right_variants
+            FROM JSON_TABLE(
+                _questions_data,
+                '$[*]' COLUMNS( 
+                    question_type_fk INT PATH '$.question_type_fk',
+                    question TEXT PATH '$.question',
+                    image_link TEXT PATH '$.image_link',
+                    `description` TEXT PATH '$.description',
+                    variants JSON PATH '$.variants',
+                    right_variants JSON PATH '$.right_variants'
+                )
+            ) as qd;
 
+            SET _result = 1; -- результат - успешная запись
+    
+    END IF;
 
+    -- Логирует данные:
+	INSERT INTO log (user_id, new_data, old_data, action_name, source, result)
+	VALUES (0, JSON_OBJECT('test_data', _test_data, 'questions_data', _questions_data), NULL, 'insert', 'pr_insert_test', _result);
 
-При успешной отработке процедуры данные будут добавлены во все 3 таблицы:
+    COMMIT;
 
+    END$$
+    DELIMITER ;
+```
 
+При успешной отработке процедуры данные будут добавлены во все 3 таблицы, иначе, если в первую запись не удалось вставить, всё откатится назад.
+
+Процедура протестирована со следующими данными:
+```
+CALL pr_insert_test(JSON_OBJECT('user_fk',2,'category_fk',1,'name','SQL DDL уровень 3','description',
+'555 Тест для проверки продвинутых навыков написания DDL запросов','test_config',null,'is_public',0,'status','in_progress'), 
+JSON_ARRAY(json_object('question_type_fk',1, 'question','555 Команда для добавления столбца в таблицу',  
+'image_link',NULL, 'description','Выберите верный ответ из представленных ниже', 
+'variants','{}','right_variants','{}'), json_object('question_type_fk',1, 'question','666 Команда для добавления столбца в таблицу',  
+'image_link',NULL, 'description','Выберите верный ответ из представленных ниже', 
+'variants','{}','right_variants','{}')));
+```
+
+[Добавлена запись в таблицу тестов](/images/log_insert.jpg)
+
+[Добавлены 2 записи в таблицу вопросов](/images/log_insert.jpg)
+
+[Добавлена запись в таблицу логов](/images/log_insert.jpg)
 
 ## Загрузить данные из приложенных в материалах csv.
 
-Так как на лекции было сказано, что важнее всё-таки загрузить данные, чем определить все 100500 столбцов таблицы, я, после многочисленных безуспешных попыток загрузить один из этих файлов, реализовала загрузку на более простом примере. В файле я специально имитировала NULL значения, чтобы было похоже на реальные данные. 
+На лекции было сказано, что важнее всё-таки загрузить данные, чем определить всё множество столбцов таблицы, я, после многочисленных безуспешных попыток загрузить один из этих файлов, реализовала загрузку на более простом примере. В файле я специально имитировала NULL значения, чтобы было похоже на реальные данные. 
 
 [Данные в файле до имитации](/images/product_data.png)
 
@@ -220,3 +300,8 @@ short_descr:
      pacage: 2 по 1000
       price: 4080
 ```
+
+## Реализовать загрузку через fifo
+Задание повышенной сложности*
+
+Непонятно, что это. Гугл тоже не особо помог.
