@@ -22,29 +22,29 @@ select
     a.`Количество заказов`,
     a.`Сумма заказов`
 from (
-	select 
-		a.employee_id as 'id Работника',
-		count(a.order_id) as 'Количество заказов',
-		sum(a.sum) as 'Сумма заказов'
-	from (
-		select 
-			orders.employee_id,
-			YEAR(orders.order_date),
-			order_details.order_id,
-			(order_details.quantity * order_details.unit_price) as sum,
-			order_details.discount
-		from orders
-		left join order_details on orders.id = order_details.order_id
-		where 
-			YEAR(orders.order_date) in (select distinct YEAR(order_date) from orders)
-			and orders.paid_date is not null 
-			and order_details.order_id is not null 
-			and (order_details.quantity * order_details.unit_price) is not null 
-			and order_details.discount is not null 
-		order by orders.employee_id
-	) as a
-	group by a.employee_id
-	order by 3 desc
+    select 
+        a.employee_id as 'id Работника',
+        count(a.order_id) as 'Количество заказов',
+        sum(a.sum) as 'Сумма заказов'
+    from (
+        select 
+            orders.employee_id,
+            YEAR(orders.order_date),
+            order_details.order_id,
+            (order_details.quantity * order_details.unit_price) as sum,
+            order_details.discount
+        from orders
+        left join order_details on orders.id = order_details.order_id
+        where 
+            YEAR(orders.order_date) in (select distinct YEAR(order_date) from orders)
+            and orders.paid_date is not null 
+            and order_details.order_id is not null 
+            and (order_details.quantity * order_details.unit_price) is not null 
+            and order_details.discount is not null 
+        order by orders.employee_id
+    ) as a
+    group by a.employee_id
+    order by 3 desc
 ) as a
 left join employees on a.`id Работника` = employees.id
 order by a.`Сумма заказов` desc;
@@ -60,7 +60,7 @@ order by a.`Сумма заказов` desc;
 
 ![Таблица заказов](/images/orders.jpg)
 
-Таблица детализации заказов
+Таблица детализаций заказов
 
 ![Таблица детализации заказов](/images/order_details.jpg)
 
@@ -371,8 +371,8 @@ SELECT
     orders.order_year as year,
     em.last_name,
     em.first_name,
-	COUNT(orders.order_id) AS orders,
-	SUM(orders.order_sum) AS sum,
+    COUNT(orders.order_id) AS orders,
+    SUM(orders.order_sum) AS sum,
     em.email_address,
     em.city
 FROM orders
