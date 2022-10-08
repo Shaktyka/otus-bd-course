@@ -54,11 +54,50 @@ order by a.`Сумма заказов` desc;
 
 ![Скриншот](/images/1_res.jpg)
 
+## Описание таблиц
+
+Таблица заказов
+
+![Таблица заказов](/images/orders.jpg)
+
+Таблица детализации заказов
+
+![Таблица детализации заказов](/images/order_details.jpg.jpg)
+
+Таблица сотрудников
+
+![Таблица сотрудников](/images/employees.jpg)
+
+Видим, что в таблицах для интересующих нас столбцов индексы есть.
+
 ## Результаты EXPLAIN
 
 **Прострой EXPLAIN**
 
 ![Скриншот](/images/1_simple.jpg)
+
+**EXPLAIN ANALYZE**
+
+```
+-> Nested loop left join  (cost=13.00 rows=0) (actual time=2.837..2.924 rows=8 loops=1)
+    -> Table scan on a  (cost=2.50..2.50 rows=0) (actual time=2.650..2.653 rows=8 loops=1)
+        -> Materialize  (cost=2.50..2.50 rows=0) (actual time=2.649..2.649 rows=8 loops=1)
+            -> Sort: `Сумма заказов` DESC  (actual time=2.574..2.576 rows=8 loops=1)
+                -> Table scan on <temporary>  (actual time=2.510..2.513 rows=8 loops=1)
+                    -> Aggregate using temporary table  (actual time=2.509..2.509 rows=8 loops=1)
+                        -> Nested loop inner join  (cost=30.95 rows=42) (actual time=1.972..2.337 rows=43 loops=1)
+                            -> Nested loop inner join  (cost=22.49 rows=42) (actual time=1.832..2.114 rows=43 loops=1)
+                                -> Filter: ((order_details.order_id is not null) and ((order_details.quantity * order_details.unit_price) is not null) and (order_details.discount is not null) and (order_details.order_id is not null))  (cost=6.05 rows=47) (actual time=0.291..0.356 rows=58 loops=1)
+                                    -> Table scan on order_details  (cost=6.05 rows=58) (actual time=0.276..0.299 rows=58 loops=1)
+                                -> Filter: (orders.paid_date is not null)  (cost=0.25 rows=1) (actual time=0.005..0.005 rows=1 loops=58)
+                                    -> Single-row index lookup on orders using PRIMARY (id=order_details.order_id)  (cost=0.25 rows=1) (actual time=0.005..0.005 rows=1 loops=58)
+                            -> Filter: (year(orders.order_date) = `<subquery4>`.`YEAR(order_date)`)  (cost=0.09..0.09 rows=1) (actual time=0.004..0.005 rows=1 loops=43)
+                                -> Single-row index lookup on <subquery4> using <auto_distinct_key> (YEAR(order_date)=year(orders.order_date))  (actual time=0.004..0.004 rows=1 loops=43)
+                                    -> Materialize with deduplication  (cost=9.85..9.85 rows=48) (actual time=0.132..0.132 rows=1 loops=1)
+                                        -> Filter: (year(orders.order_date) is not null)  (cost=5.05 rows=48) (actual time=0.050..0.084 rows=48 loops=1)
+                                            -> Table scan on orders  (cost=5.05 rows=48) (actual time=0.045..0.068 rows=48 loops=1)
+    -> Single-row index lookup on employees using PRIMARY (id=a.`id Работника`)  (cost=0.25 rows=1) (actual time=0.033..0.033 rows=1 loops=8)
+```
 
 **EXPLAIN в формате JSON**
 
@@ -285,7 +324,13 @@ order by a.`Сумма заказов` desc;
 
 ## Оценка плана выполнения запроса
 
-(написать)
+- по результатам EXPLAIN ANALYZE видно большое время выполнения запроса; учитывая, что данных мало, это очень плохо;
+- много циклов выполнения;
+- есть Table scan 4 раза и материализация;
+- используются индексы, это хорошо.
+
+Запрос нужно оптимизировать!
+
 (индексы, хинты, сбор статистики, гистограммы)
 
 ## Проблемы с запросом
@@ -314,17 +359,17 @@ order by a.`Сумма заказов` desc;
 
 ```
 WITH orders AS (
-	SELECT 
-		o.employee_id,
-		YEAR(o.order_date) AS order_year,
-		od.order_id,
-		ROUND((od.quantity * od.unit_price), 2) AS order_sum
-	FROM orders AS o -- берём таблицу, где записей меньше
-	INNER JOIN order_details AS od ON o.id = od.order_id -- джойним таблицу, где записей больше
-	WHERE o.paid_date IS NOT NULL -- оплаченные 
+    SELECT 
+        o.employee_id,
+        YEAR(o.order_date) AS order_year,
+        od.order_id,
+        ROUND((od.quantity * od.unit_price), 2) AS order_sum
+    FROM orders AS o -- берём таблицу, где записей меньше
+    INNER JOIN order_details AS od ON o.id = od.order_id -- джойним таблицу, где записей больше
+    WHERE o.paid_date IS NOT NULL -- оплаченные 
 ) 
 SELECT 
-	orders.employee_id,
+    orders.employee_id,
     orders.order_year as year,
     em.last_name,
     em.first_name,
@@ -349,6 +394,20 @@ ORDER BY year DESC, sum DESC;
 **Простой EXPLAIN**
 
 ![Скриншот](/images/2_simple.jpg)
+
+**EXPLAIN ANALYZE**
+
+```
+-> Sort: orders.`year` DESC, sum DESC  (actual time=0.989..0.991 rows=8 loops=1)
+    -> Table scan on <temporary>  (actual time=0.932..0.935 rows=8 loops=1)
+        -> Aggregate using temporary table  (actual time=0.931..0.931 rows=8 loops=1)
+            -> Nested loop inner join  (cost=42.09 rows=63) (actual time=0.318..0.699 rows=43 loops=1)
+                -> Nested loop left join  (cost=20.17 rows=43) (actual time=0.268..0.410 rows=38 loops=1)
+                    -> Filter: (o.paid_date is not null)  (cost=5.05 rows=43) (actual time=0.143..0.179 rows=38 loops=1)
+                        -> Table scan on o  (cost=5.05 rows=48) (actual time=0.142..0.173 rows=48 loops=1)
+                    -> Single-row index lookup on em using PRIMARY (id=o.employee_id)  (cost=0.25 rows=1) (actual time=0.006..0.006 rows=1 loops=38)
+                -> Index lookup on od using fk_order_details_orders1_idx (order_id=o.id)  (cost=0.37 rows=1) (actual time=0.005..0.005 rows=1 loops=38)
+```
 
 **EXPLAIN c типом JSON**
 
@@ -482,7 +541,14 @@ ORDER BY year DESC, sum DESC;
 
 **Выводы**
 
-(написать)
+- по результатам простого EXPLAIN dидно, что количество узлов в плане выполнения уменьшилось в 2 раза: было 6, стало 3;
+- select_type стал везде SIMPLE;
+- в 2 из 3х строк были использованы индексы. В 1й не использован из-за большого % выбора строк в таблице orders, тут лучше прочитать таблицу целиком;
+- оцениваемое количество строк соотвественно тоже уменьшилось;
+- EXTRA не был указан для 2 и 3 строк, что хорошо;
+- по результатам EXPLAIN ANALYZE видно использование индексов и сокращение времени запроса в 2 раза. 
+
+В целом, запрос стал читаться гораздо лучше, выполняется за меньшее количество шагов и в 2 раза быстрее.
 
 **SHOW WARNINGS**
 
