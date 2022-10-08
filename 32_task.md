@@ -285,7 +285,8 @@ order by a.`Сумма заказов` desc;
 
 ## Оценка плана выполнения запроса
 
-
+(написать)
+(индексы, хинты, сбор статистики, гистограммы)
 
 ## Проблемы с запросом
 
@@ -337,34 +338,17 @@ GROUP BY orders.employee_id, year, em.last_name, em.first_name
 ORDER BY year DESC, sum DESC;
 ```
 
-В таблице данные представлены только за 2006 год, можно было сразу его написать, если бы у нас было партицирование по годам и нужно было только за 2006 год данные анализировать, но предполагаем, что тут могут быть .
+В таблице данные представлены только за 2006 год, можно было сразу его написать, если бы у нас было партицирование по годам и нужно было только за 2006 год данные анализировать, но предполагаем, что тут могут быть разные года.
 
 **Результат выполнения запроса**
 
 ![Скриншот](/images/2_result.jpg)
-
-```
-'9','Hellung-Larsen','Anne','10','19974.25','anne@northwindtraders.com','Seattle'
-'6','Neipper','Michael','4','6378.00','michael@northwindtraders.com','Redmond'
-'4','Sergienko','Mariya','10','6278.00','mariya@northwindtraders.com','Kirkland'
-'3','Kotas','Jan','7','5787.50','jan@northwindtraders.com','Redmond'
-'1','Freehafer','Nancy','5','4410.50','nancy@northwindtraders.com','Seattle'
-'7','Zare','Robert','3','3786.50','robert@northwindtraders.com','Seattle'
-'2','Cencini','Andrew','3','2617.50','andrew@northwindtraders.com','Bellevue'
-'8','Giussani','Laura','1','680.00','laura@northwindtraders.com','Redmond'
-```
 
 **Результаты EXPLAIN**
 
 **Простой EXPLAIN**
 
 ![Скриншот](/images/2_simple.jpg)
-
-```
-'1','SIMPLE','o',NULL,'ALL','PRIMARY,id,id_2,id_3',NULL,NULL,NULL,'48','90.00','Using where; Using temporary; Using filesort'
-'1','SIMPLE','em',NULL,'eq_ref','PRIMARY','PRIMARY','4','northwind.o.employee_id','1','100.00',NULL
-'1','SIMPLE','od',NULL,'ref','fk_order_details_orders1_idx','fk_order_details_orders1_idx','4','northwind.o.id','1','100.00',NULL
-```
 
 **EXPLAIN c типом JSON**
 
@@ -497,6 +481,10 @@ ORDER BY year DESC, sum DESC;
 ```
 
 **Выводы**
+
+(написать)
+
+**SHOW WARNINGS**
 
 `SHOW WARNINGS` для этого запроса показал такой вывод:
 
