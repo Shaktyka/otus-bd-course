@@ -92,47 +92,47 @@
     
     -- Передан ли код товара:
     IF _product_code IS NOT NULL THEN
-		SET @p_code = concat( ' product_code = "', _product_code, '"' );
+        SET @p_code = concat( ' product_code = "', _product_code, '"' );
         SET @where = concat( @where, ' AND ', @p_code );
     END IF;
     
     -- Передана ли категория товара:
     IF _category IS NOT NULL THEN
-		SET @category = concat( ' category = "', _category, '"' );
+        SET @category = concat( ' category = "', _category, '"' );
         SET @where = concat( @where, ' AND ', @category );
     END IF;
     
     -- Передано ли название товара:
     IF _product_name IS NOT NULL THEN
         SET @p_name = concat( ' product_name LIKE "', CONCAT('%', _product_name, '%'), '"' );
-		SET @where = concat( @where, ' AND ', @p_name );
+        SET @where = concat( @where, ' AND ', @p_name );
     END IF;
     
     -- Передано ли описание товара:
     IF _description IS NOT NULL THEN
         SET @p_descr = concat( ' description LIKE "', CONCAT('%', _description, '%'), '"' );
-		SET @where = concat( @where, ' AND ', @p_descr );
+        SET @where = concat( @where, ' AND ', @p_descr );
     END IF;
     
     -- Передана ли цена:
     IF _list_price IS NOT NULL THEN
         SET @p_lprice = concat( 'list_price >= ', COALESCE(_list_price, 0) );
-		SET @where = concat( @where, ' AND ', @p_lprice );
+        SET @where = concat( @where, ' AND ', @p_lprice );
     END IF;
     
     -- Передано ли описание упаковки:
     IF _quantity_per_unit IS NOT NULL THEN
         SET @p_quantity = concat( 'quantity_per_unit LIKE "', CONCAT('%', _quantity_per_unit, '%'), '"' );
-		SET @where = concat( @where, ' AND ', @p_quantity );
+        SET @where = concat( @where, ' AND ', @p_quantity );
     END IF;
     
     -- Собирает запрос:
     SET @query = CONCAT (
-		'SELECT ', @fields, ' ',
-		'FROM products WHERE', ' ', @where, ' ',
-		'ORDER BY (', _sort_field, ') ', COALESCE(_sort_dir, 'ASC'), ' ',
-		'LIMIT ', COALESCE(_limit, 5), ' ',
-		'OFFSET ', COALESCE(_offset, 0)
+        'SELECT ', @fields, ' ',
+        'FROM products WHERE', ' ', @where, ' ',
+        'ORDER BY (', _sort_field, ') ', COALESCE(_sort_dir, 'ASC'), ' ',
+        'LIMIT ', COALESCE(_limit, 5), ' ',
+        'OFFSET ', COALESCE(_offset, 0)
     );
     
     -- Готовит и выполняет запрос
