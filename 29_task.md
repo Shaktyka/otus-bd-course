@@ -69,53 +69,92 @@
 
     ```
     DELIMITER $$
-    CREATE PROCEDURE pr_get_filtered_products_sort(
-        IN _discontinued TINYINT(1),
+    CREATE PROCEDURE pr_get_filtered_sorted_products(
+        IN _discontinued INT,
         IN _product_code VARCHAR(15),
-        IN _category VARCHAR(20),
-        IN _product_name VARCHAR(50),
+        IN _category VARCHAR(30),
+        IN _product_name VARCHAR(100),
         IN _description VARCHAR(100),
-        IN _standard_cost DECIMAL,
+        IN _list_price DECIMAL(19,4),
         IN _quantity_per_unit VARCHAR(20),
-        IN _sort_field varchar(20),
+        IN _sort_field varchar(30),
+        IN _sort_dir varchar(4),
         IN _limit SMALLINT UNSIGNED,
         IN _offset SMALLINT UNSIGNED
     )
     BEGIN
-
-    SET _standard_cost = COALESCE(_standard_cost, 0);
-    SET _sort_field    = COALESCE(_sort_field, 'p.id DESC'); -- по умолчанию сортируем по id продукта в обратном порядке
-    SET _limit         = COALESCE(_standard_cost, 10); -- по умолчанию 10 строк
-    SET _offset        = COALESCE(_offset, 0);
-
-    SELECT 
-        p.id, 
-        p.product_code, 
-        p.product_name, 
-        p.category, 
-        p.description, 
-        p.standard_cost, 
-        p.list_price, 
-        p.quantity_per_unit
-    FROM products AS p
-    WHERE 
-        p.discontinued = _discontinued
-        AND ( _product_code IS NULL OR p.product_code = _product_code )
-        AND ( _category IS NULL OR p.category = _category )
-        AND ( p.standard_cost >= _standard_cost )
-        AND ( _product_name IS NULL OR p.product_name LIKE concat('%', _product_name, '%') )
-        AND ( _description IS NULL OR p.description LIKE concat('%', _description, '%') )
-        AND ( _quantity_per_unit IS NULL OR p.quantity_per_unit LIKE concat('%', _quantity_per_unit, '%') )
-    ORDER BY _sort_field
-    LIMIT _limit
-    OFFSET _offset;
+    
+    -- Определяет список полей выборки:
+    SET @fields = 'id, product_code, product_name, category, `description`, standard_cost, list_price, quantity_per_unit, discontinued';
+    
+    -- Задаёт стартовое значение списку фильтров WHERE:
+    SET @where = concat( 'discontinued = ', COALESCE(_discontinued, 0) );
+    
+    -- Передан ли код товара:
+    IF _product_code IS NOT NULL THEN
+		SET @p_code = concat( ' product_code = "', _product_code, '"' );
+        SET @where = concat( @where, ' AND ', @p_code );
+    END IF;
+    
+    -- Передана ли категория товара:
+    IF _category IS NOT NULL THEN
+		SET @category = concat( ' category = "', _category, '"' );
+        SET @where = concat( @where, ' AND ', @category );
+    END IF;
+    
+    -- Передано ли название товара:
+    IF _product_name IS NOT NULL THEN
+        SET @p_name = concat( ' product_name LIKE "', CONCAT('%', _product_name, '%'), '"' );
+		SET @where = concat( @where, ' AND ', @p_name );
+    END IF;
+    
+    -- Передано ли описание товара:
+    IF _description IS NOT NULL THEN
+        SET @p_descr = concat( ' description LIKE "', CONCAT('%', _description, '%'), '"' );
+		SET @where = concat( @where, ' AND ', @p_descr );
+    END IF;
+    
+    -- Передана ли цена:
+    IF _list_price IS NOT NULL THEN
+        SET @p_lprice = concat( 'list_price >= ', COALESCE(_list_price, 0) );
+		SET @where = concat( @where, ' AND ', @p_lprice );
+    END IF;
+    
+    -- Передано ли описание упаковки:
+    IF _quantity_per_unit IS NOT NULL THEN
+        SET @p_quantity = concat( 'quantity_per_unit LIKE "', CONCAT('%', _quantity_per_unit, '%'), '"' );
+		SET @where = concat( @where, ' AND ', @p_quantity );
+    END IF;
+    
+    -- Собирает запрос:
+    SET @query = CONCAT (
+		'SELECT ', @fields, ' ',
+		'FROM products WHERE', ' ', @where, ' ',
+		'ORDER BY (', _sort_field, ') ', COALESCE(_sort_dir, 'ASC'), ' ',
+		'LIMIT ', COALESCE(_limit, 5), ' ',
+		'OFFSET ', COALESCE(_offset, 0)
+    );
+    
+    -- Готовит и выполняет запрос
+    PREPARE stmt FROM @query;
+    EXECUTE stmt;
+    DEALLOCATE PREPARE stmt;
 
     END$$
     DELIMITER ;
     ```
 
-    Даём права на запуск процедуры пользователю client
-    `GRANT EXECUTE ON pr_get_filtered_products TO 'client'@'%';`
+    Даём права на запуск последней процедуры пользователю client
+
+    `GRANT EXECUTE ON pr_get_filtered_sorted_products TO 'client'@'%';`
+
+    Пример вызова процедуры:
+
+    `call pr_1(0, NULL, 'Beverages', 'Tea', NULL, 0, 20, 'category', 'asc', 10, NULL);`
+
+    Результат выполнения:
+
+    ![Результат выполнения процедуры с сортировкой](/images/order_proc.jpg)
 
 
 1. **Создать процедуру get_orders**, которая позволяет просматривать отчет по продажам за определенный период (час, день, неделя) с различными уровнями группировки (по товару, по категории, по производителю)
