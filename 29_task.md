@@ -4,9 +4,9 @@
 
 1. **Создать пользователей client, manager**
 
-    `CREATE USER 'client'@'localhost' IDENTIFIED BY '12345';`
+    `CREATE USER 'client'@'%' IDENTIFIED BY '12345';`
 
-    `CREATE USER 'manager'@'localhost' IDENTIFIED BY '67890';`
+    `CREATE USER 'manager'@'%' IDENTIFIED BY '67890';`
 
 1. **Создать процедуру выборки товаров с использованием различных фильтров**: категория, цена, производитель, различные дополнительные параметры
 
@@ -16,16 +16,14 @@
         IN _discontinued INT,
         IN _product_code VARCHAR(15),
         IN _category VARCHAR(20),
-        IN _product_name VARCHAR(50),
+        IN _product_name VARCHAR(100),
         IN _description VARCHAR(100),
-        IN _standard_cost DECIMAL,
+        IN _list_price DECIMAL(19,4),
         IN _quantity_per_unit VARCHAR(20)
     )
     BEGIN
 
-    set _standard_cost = COALESCE(_standard_cost, 0);
-
-    select 
+    SELECT 
         p.id, 
         p.product_code, 
         p.product_name, 
@@ -33,21 +31,39 @@
         p.description, 
         p.standard_cost, 
         p.list_price, 
-        p.quantity_per_unit
-    from products as p
-    where 
-        p.discontinued = _discontinued
-        and ( _product_code is null or p.product_code = _product_code )
-        and ( _category is null or p.category = _category )
-        and ( p.standard_cost >= _standard_cost )
-        and ( _product_name is null or p.product_name like concat('%', _product_name, '%') )
-        and ( _description is null or p.description like concat('%', _description, '%') )
-        and ( _quantity_per_unit is null or p.quantity_per_unit like concat('%', _quantity_per_unit, '%') )
-    ;
+        p.quantity_per_unit,
+        p.discontinued
+    FROM products AS p
+    WHERE 
+        ( _product_code IS NULL OR p.product_code = _product_code )
+        AND ( _product_name IS NULL OR p.product_name LIKE CONCAT('%', _product_name, '%') )
+        AND ( _description IS NULL OR p.description LIKE CONCAT('%', _description, '%') )
+        AND ( _category IS NULL OR p.category = _category )
+        AND ( p.list_price >= COALESCE(_list_price, 0) )
+        AND ( _quantity_per_unit IS NULL OR p.quantity_per_unit LIKE CONCAT('%', _quantity_per_unit, '%') )
+        AND ( p.discontinued = COALESCE(_discontinued, 0) )
+    ORDER BY p.product_name;
 
     END$$
     DELIMITER ;
     ```
+
+**Пример 1**
+
+Выберем все товары в наличии:
+
+`call pr_get_filtered_products(0, null, null, null, null, null, null);`
+
+![Пример 1](/images/pr_all.jpg)
+
+**Пример 2** 
+
+Выберем товары с фильтрами:
+
+`call pr_get_filtered_products(0, null, null, null, null, 2, 'bags');`
+
+![Пример 2](/images/pr_filter.jpg)
+
 
 1. Также в качестве параметров **передавать по какому полю сортировать выборку**, и параметры **постраничной выдачи**
 
@@ -99,13 +115,13 @@
     ```
 
     Даём права на запуск процедуры пользователю client
-    `GRANT EXECUTE ON pr_get_filtered_products TO 'client'@'localhost';`
+    `GRANT EXECUTE ON pr_get_filtered_products TO 'client'@'%';`
 
 
 1. **Создать процедуру get_orders**, которая позволяет просматривать отчет по продажам за определенный период (час, день, неделя) с различными уровнями группировки (по товару, по категории, по производителю)
 
     Даём права пользователю manager:
-    `GRANT EXECUTE ON pr_sales_report TO 'manager'@'localhost';`
+    `GRANT EXECUTE ON pr_sales_report TO 'manager'@'%';`
 
     Определение процедуры:
 
