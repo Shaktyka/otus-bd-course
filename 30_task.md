@@ -38,13 +38,17 @@ xtrabackup --databases='otus' --backup --stream=xbstream | gzip - | openssl des3
     ) ENGINE=InnoDB AUTO_INCREMENT=4080 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
     ```
 
-1. Загрузили бэкап в дректорию на сервер:
+1. Создали файловую структуру
 
     ```
     sudo mkdir -p /tmp/backups/world
     sudo chmod -R 777 /tmp/backups/world
     cd /tmp/backups/
     ```
+
+1. Загрузили бэкап в дректорию на сервер:
+
+    `scp /Users/elena/Documents/course_otus/backup_des.xbstream.gz-195395-7bc8ae.des3 root@81.163.31.161:/tmp/backups/world`
 
 1. Расшифровали файл бэкапа:
 
@@ -54,11 +58,13 @@ xtrabackup --databases='otus' --backup --stream=xbstream | gzip - | openssl des3
 
 1. Распаковали из архива gz:
 
-    `gzip -d backup_des.xbstream.gz `
+    `gzip -d backup_des.xbstream.gz`
 
 1. Извлекли бэкап их xbstream:
     
     `mkdir stream`
+
+    `sudo chmod -R 777 stream`
 
     `cd stream`
 
@@ -86,23 +92,23 @@ xtrabackup --databases='otus' --backup --stream=xbstream | gzip - | openssl des3
     -rw-r----- 1 root root       39 Oct 11 05:26 xtrabackup_tablespaces
     ```
 
-1. После расшифровки сделали подготовку:
+    Бэкап таблицы city в виде файла `city.ibd` лежит в папке `world`.
+
+1. Извлекли бэкап отдельной таблицы:
 
     > Note that the streamed backup will need to be prepared before restoration. 
     > Streaming mode does not prepare the backup.
-
-    `sudo xtrabackup --prepare --target-dir=/tmp/backups/xtrabackup/base`
-
-    `xtrabackup --prepare --target-dir=/data/backup/`
-
-1. Из всего бэкапа извлекли бэкап отдельной таблицы:
-
     > Percona XtraBackup can export a table that is contained in its own .ibd file
     > This method only works on individual .ibd files.
 
+    Подготовка для бэкапа, если надо извлечь таблицу:
+    ```
+    sudo xtrabackup --prepare --export --target-dir=/tmp/backups/world/stream
     ```
 
-    ```
+    Ура! Всё получилось!
+
+    `2022-10-11T16:29:12.435265-00:00 0 [Note] [MY-011825] [Xtrabackup] completed OK!`
 
 1. Отключили таблицу от `tablespace`:
 
@@ -112,15 +118,35 @@ xtrabackup --databases='otus' --backup --stream=xbstream | gzip - | openssl des3
 
 1. Выполнили восстановление бэкапа таблицы:
 
+    Восстанавливаем бэкап:
     ```
+    sudo cp /tmp/backups/world/stream/world/city.ibd /var/lib/mysql/otus
+    ```
+
+    Нужно обязательно поменять владельца файла:
+    ```
+    sudo chown -R mysql.mysql /var/lib/mysql/otus/city.ibd
     ```
 
 1. Восстанавили tablespace
 
-    `ALTER TABLE otus.export_tcityest IMPORT TABLESPACE;`
+    ```
+    ALTER TABLE otus.city IMPORT TABLESPACE;
+    ```
 
 1. Извлекли данные из таблицы:
 
-    `select count(*) from city where countrycode = 'RUS';`
+    ```
+    select count(*) from city where countrycode = 'RUS';
+    ```
 
-    Результат: 
+    Результат: всё получилось!
+
+    ```
+    mysql> select count(*) from city where countrycode = 'RUS';
+    +----------+
+    | count(*) |
+    +----------+
+    |      189 |
+    +----------+
+    ```
