@@ -3,20 +3,25 @@
 **Задача - восстановить конкретную таблицу из сжатого и шифрованного бэкапа**
 
 В материалах приложен файл бэкапа backup.xbstream.gz.des3 и дамп структуры базы otus - otus-db.dmp
-Бэкап был выполнен с помощью команды
+
+Бэкап был выполнен с помощью команды:
 ```
 xtrabackup --databases='otus' --backup --stream=xbstream | gzip - | openssl des3 -salt -k "password" > backup.xbstream.gz.des3
 ```
 
-Требуется восстановить таблицу otus.articles из бэкапа.
+Требуется восстановить таблицу otus.city из бэкапа.
 
 ## Выполнение
 
-1. Установить xtrabackup 
+1. Установили xtrabackup:
 
     [Документация](https://learn.percona.com/hubfs/Manuals/Percona_Xtra_Backup/Percona-XtraBackup-8.0/PerconaXtraBackup-8.0.29-22.pdf)
 
-1. Создать БД и таблицу для неё
+1. Создали БД и таблицу для неё
+
+    ```
+    CREATE DATABASE otus;
+    ```
 
     ```
     DROP TABLE IF EXISTS `city`;
@@ -33,7 +38,7 @@ xtrabackup --databases='otus' --backup --stream=xbstream | gzip - | openssl des3
     ) ENGINE=InnoDB AUTO_INCREMENT=4080 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
     ```
 
-1. Загрузить бэкап в дректорию на сервер
+1. Загрузили бэкап в дректорию на сервер:
 
     ```
     sudo mkdir -p /tmp/backups/world
@@ -41,23 +46,25 @@ xtrabackup --databases='otus' --backup --stream=xbstream | gzip - | openssl des3
     cd /tmp/backups/
     ```
 
-1. Расшифровываем файл
+1. Расшифровали файл бэкапа:
 
     ```
     openssl des3 -salt -k "password" -d -in /tmp/backups/world/backup_des.xbstream.gz-195395-7bc8ae.des3 -out /tmp/backups/world/backup_des.xbstream.gz
     ```
 
-1. Распаковываем из gz
+1. Распаковали из архива gz:
 
     `gzip -d backup_des.xbstream.gz `
 
-1. Распаковать бэкап после xbstream
+1. Извлекли бэкап их xbstream:
     
     `mkdir stream`
 
     `cd stream`
 
     `xbstream -x < ../backup_des.xbstream`
+
+    Содержимое папки `stream`:
 
     ```
     -rw-r----- 1 root root      475 Oct 11 05:26 backup-my.cnf
@@ -79,28 +86,41 @@ xtrabackup --databases='otus' --backup --stream=xbstream | gzip - | openssl des3
     -rw-r----- 1 root root       39 Oct 11 05:26 xtrabackup_tablespaces
     ```
 
-Percona XtraBackup can export a table that is contained in its own .ibd file
-This method only works on individual .ibd files.
-
-1. После расшифровки нужна подготовка:
+1. После расшифровки сделали подготовку:
 
     > Note that the streamed backup will need to be prepared before restoration. 
     > Streaming mode does not prepare the backup.
 
+    `sudo xtrabackup --prepare --target-dir=/tmp/backups/xtrabackup/base`
+
     `xtrabackup --prepare --target-dir=/data/backup/`
 
-1. Из всего бэкапа извлечь бэкап отдельной таблицы
+1. Из всего бэкапа извлекли бэкап отдельной таблицы:
 
-    ``
-
-1. Отключение таблицы от tablespace
+    > Percona XtraBackup can export a table that is contained in its own .ibd file
+    > This method only works on individual .ibd files.
 
     ```
-    ALTER TABLE test.export_test DISCARD TABLESPACE; 
-    ALTER TABLE test.export_test IMPORT TABLESPACE;
+
     ```
 
-1. Запускаем восстановление бэкапа:
+1. Отключили таблицу от `tablespace`:
 
-    ``
+    ```
+    ALTER TABLE otus.city DISCARD TABLESPACE; 
+    ```
 
+1. Выполнили восстановление бэкапа таблицы:
+
+    ```
+    ```
+
+1. Восстанавили tablespace
+
+    `ALTER TABLE otus.export_tcityest IMPORT TABLESPACE;`
+
+1. Извлекли данные из таблицы:
+
+    `select count(*) from city where countrycode = 'RUS';`
+
+    Результат: 
