@@ -38,17 +38,17 @@ ORDER BY v.Name;
 
 ```
 SELECT
-	PC.ProductCategoryID AS category_id,
-	PC.Name AS category,
-	max(P.ListPrice) AS max_price,
-	min(P.ListPrice) AS min_price,
-	count(P.ProductID) as amount
+    PC.ProductCategoryID AS category_id,
+    PC.Name AS category,
+    max(P.ListPrice) AS max_price,
+    min(P.ListPrice) AS min_price,
+    count(P.ProductID) as amount
 FROM productcategory AS PC
 INNER JOIN productsubcategory AS PSC ON PC.ProductCategoryID = PSC.ProductCategoryID
 INNER JOIN product AS P ON PSC.ProductSubcategoryID = P.ProductSubcategoryID
 WHERE 
-	ListPrice > 0
-	AND DiscontinuedDate IS NULL
+    ListPrice > 0
+    AND DiscontinuedDate IS NULL
 GROUP BY PC.ProductCategoryID, PC.Name
 ORDER BY amount DESC;
 ```
