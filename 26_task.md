@@ -11,7 +11,51 @@
 
 ### Для магазина к предыдущему списку продуктов добавить максимальную и минимальную цену и кол-во предложений
 
+Формулировка задания не очень понятная, сделала на примере поставщиков и их поставок.
 
+Для поставщиков посчитать максимальную и минимальную сумму заказов и количество заказов за всё время.
+Вывести столбцы: название и идентификатор поставщика, минимальная сумма заказа, максимальная сумма заказа, общее количество заказов. Отсортировать по названию поставщика.
+
+```
+SELECT
+    v.VendorID AS vendor_id,
+    v.Name AS vendor_name,
+    max(ph.TotalDue) AS max_order_sum,
+    min(ph.TotalDue) AS min_order_sum,
+    count(ph.PurchaseOrderID) as orders_amount
+FROM vendor AS v
+INNER JOIN purchaseorderheader AS ph ON v.VendorID = ph.VendorID
+INNER JOIN purchaseorderdetail AS pd ON ph.PurchaseOrderID = pd.PurchaseOrderID
+GROUP BY v.VendorID, v.Name
+ORDER BY v.Name;
+```
+
+Результат выборки: 
+
+![Статистика по поставщикам](/images/vendors.jpg)
+
+Если по спискам продуктов, то сделала по категориям товаров: id, название категории, максимальная и минимальная цена, кол-во позиций.
+
+```
+SELECT
+	PC.ProductCategoryID AS category_id,
+	PC.Name AS category,
+	max(P.ListPrice) AS max_price,
+	min(P.ListPrice) AS min_price,
+	count(P.ProductID) as amount
+FROM productcategory AS PC
+INNER JOIN productsubcategory AS PSC ON PC.ProductCategoryID = PSC.ProductCategoryID
+INNER JOIN product AS P ON PSC.ProductSubcategoryID = P.ProductSubcategoryID
+WHERE 
+	ListPrice > 0
+	AND DiscontinuedDate IS NULL
+GROUP BY PC.ProductCategoryID, PC.Name
+ORDER BY amount DESC;
+```
+
+Результат выборки:
+
+![Статистика по категориям](/images/statistics.jpg)
 
 ### Сделать выборку, показывающую самый дорогой и самый дешевый товар в каждой категории
 
