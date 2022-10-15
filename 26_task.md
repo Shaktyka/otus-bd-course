@@ -9,20 +9,13 @@
 
 ### Для магазина к предыдущему списку продуктов добавить максимальную и минимальную цену и кол-во предложений
 
--- Максимальная и минимальная цены товаров в каждой категории:
-'2','Components','1431.5','20.24'
-'4','Accessories','159','2.29'
-'3','Clothing','89.99','8.99'
-'1','Bikes','3578.27','539.99'
-
-
 
 
 ### Сделать выборку, показывающую самый дорогой и самый дешевый товар в каждой категории
 
 ```
 WITH cte AS (
-	SELECT DISTINCT
+    SELECT DISTINCT
         PC.ProductCategoryID AS category_id,
         PC.Name AS category,
         max(P.ListPrice) OVER w AS max_price,
@@ -33,7 +26,7 @@ WITH cte AS (
     WINDOW w AS (PARTITION BY PC.ProductCategoryID)
 ) 
 SELECT
-	cte.category_id,
+    cte.category_id,
     cte.category,
     cte.max_price,
     (SELECT GROUP_CONCAT(P1.name SEPARATOR ', ') FROM product AS P1 WHERE P1.ListPrice = cte.max_price) AS max_price_products,
@@ -53,7 +46,7 @@ ORDER BY cte.category;
 
 ```
 SELECT 
-	PC.ProductCategoryID AS categoryID,
+    PC.ProductCategoryID AS categoryID,
     PC.Name AS category,
     count(*) AS amount
 FROM productcategory AS PC
@@ -71,7 +64,7 @@ WITH ROLLUP;
 
 ```
 SELECT 
-	PC.ProductCategoryID AS categoryID,
+    PC.ProductCategoryID AS categoryID,
     PC.Name AS category,
     PSC.Name AS subcategory,
     count(*) AS amount
