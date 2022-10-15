@@ -25,4 +25,31 @@
 
 ### Сделать rollup с количеством товаров по категориям
 
+**ROLLUP с количеством товаров по категориям**
 
+```
+SELECT 
+	PC.ProductCategoryID AS categoryID,
+    PC.Name AS category,
+    count(*) AS amount
+FROM productcategory AS PC
+INNER JOIN productsubcategory AS PSC ON PC.ProductCategoryID = PSC.ProductCategoryID
+INNER JOIN product AS P ON PSC.ProductSubcategoryID = P.ProductSubcategoryID
+GROUP BY PC.ProductCategoryID, PC.Name
+WITH ROLLUP;
+```
+
+**ROLLUP с количеством товаров ещё и по подкатегориям**
+
+```
+SELECT 
+	PC.ProductCategoryID AS categoryID,
+    PC.Name AS category,
+    PSC.Name AS subcategory,
+    count(*) AS amount
+FROM productcategory AS PC
+INNER JOIN productsubcategory AS PSC ON PC.ProductCategoryID = PSC.ProductCategoryID
+INNER JOIN product AS P ON PSC.ProductSubcategoryID = P.ProductSubcategoryID
+GROUP BY PC.ProductCategoryID, PC.Name, PSC.Name
+WITH ROLLUP;
+```
