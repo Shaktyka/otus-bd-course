@@ -159,12 +159,73 @@
 
 1. **Создать процедуру get_orders**, которая позволяет просматривать отчет по продажам за определенный период (час, день, неделя) с различными уровнями группировки (по товару, по категории, по производителю)
 
-    Даём права пользователю manager:
-    `GRANT EXECUTE ON pr_sales_report TO 'manager'@'%';`
+    `DROP PROCEDURE IF EXISTS get_orders;`
 
     Определение процедуры:
 
     ```
+    DELIMITER $$
+    CREATE PROCEDURE adventureworks.get_orders (
+	    IN _per_beg timestamp, 
+        IN _per_end timestamp, 
+        IN _group_cols text
+    )
+    BEGIN
+    -- Объявляет переменные:
+    DECLARE per_beg text;
+    DECLARE per_end text;
+    DECLARE select_cols text;
+    DECLARE group_by_cols text;
+    DECLARE query_str text;
 
+    -- Определяет фильтр по началу периода:
+    IF _per_beg IS NOT NULL THEN
+	    SET @period_beg = concat('s.OrderDate >= ', _per_beg);
+    END IF;
+
+    -- Определяет фильтр по концу периода:
+    IF _per_end IS NOT NULL THEN
+	    SET @per_end = concat('s.OrderDate <= ', _per_end);
+    END IF;
+
+    -- Определяет столбцы для выборки и группировки:
+    IF _group_cols IS NOT NULL THEN
+        SET @group_by_cols = concat('GROUP BY ', _group_cols);
+        SET @select_cols = concat(_group_cols, ', ', 'ROUND(SUM(od.LineTotal), 2) AS SumPrice');
+    ELSE
+        SET @select_cols = ' * ';
+    END IF;
+
+    -- Собирает запрос:
+    SET @query_str = CONCAT_WS ( 
+        ' ', 
+	    'SELECT', @select_cols,
+	    'FROM salesorderheader AS s
+        INNER JOIN salesorderdetail AS od ON s.SalesOrderID = od.SalesOrderID
+	    INNER JOIN product AS p ON od.ProductID = p.ProductID
+	    LEFT JOIN productsubcategory AS ps ON p.ProductSubcategoryID = ps.ProductSubcategoryID
+	    LEFT JOIN productcategory AS pc ON ps.ProductCategoryID = pc.ProductCategoryID',
+        @group_by_cols
+    );
+
+    -- Готовит и выполняет запрос
+    PREPARE stmt FROM @query_str;
+    EXECUTE stmt;
+    DEALLOCATE PREPARE stmt;
+
+    END$$
+    DELIMITER ;
     ```
+
+    Даём права пользователю manager:
+
+    `GRANT EXECUTE ON get_orders TO 'manager'@'%';`
     
+    Вызовем процедуру, чтобы получить суммы продаж по категориям за 2002 год:
+    
+    `call get_orders('2002-01-01', '2002-12-31', 'ps.ProductCategoryID');`
+
+    Результат:
+
+    ![Результат вызова процедуры 3](/images/proc_res_1.jpg)
+
