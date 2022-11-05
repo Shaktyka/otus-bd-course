@@ -95,7 +95,7 @@ db.customers.insertMany([
 
 Затем с помощью функции load() загрузим данные из файла:
 ```
-load("files/generated.json")
+load("files/generated.js")
 ```
 
 ## Запросы данных на выборку и обновление
@@ -122,29 +122,11 @@ db.customers.find({gender: "female"})
 ```
 {
     _id: '10',
-    index: 9,
-    guid: '580f29bf-8f0f-407c-a08a-7bf94061e365',
-    isActive: true,
-    balance: '$2,724.64',
-    picture: 'http://placehold.it/32x32',
-    age: 32,
-    eyeColor: 'brown',
+    ...
     name: 'Alyssa Martinez',
     gender: 'female',
     company: 'PHARMACON',
-    email: 'alyssamartinez@pharmacon.com',
-    phone: '+1 (891) 501-2384',
-    address: '393 Lloyd Street, Cazadero, Oklahoma, 819',
-    about: 'Officia exercitation veniam laboris occaecat ea ea laborum. Eu voluptate aute quis do anim. Eu pariatur qui eu tempor nisi sunt sunt incididunt. Enim quis minim fugiat et aute sint eiusmod anim. Non ullamco aliquip labore aliqua qui qui anim nostrud Lorem ex. Amet aute amet irure Lorem duis amet voluptate ex aliqua adipisicing incididunt in. Labore cillum amet laborum exercitation proident eiusmod sunt incididunt sunt.\r\n',
-    registered: '2016-01-23T08:46:59 -05:00',
-    latitude: -23.622055,
-    longitude: 8.871669,
-    tags: [ 'tempor', 'ullamco', 'et', 'ut', 'ea', 'exercitation', 'Lorem' ],
-    friends: [
-      { id: 0, name: 'Aurelia Rivas' },
-      { id: 1, name: 'Estes Sanford' },
-      { id: 2, name: 'Victoria Winters' }
-    ]
+    ...
   }
 ```
 
@@ -193,6 +175,24 @@ db.customers.find ({age: {$lt : 30}})
 ```
 
 Результат: 2 записи с id 1 и 9 и возрастом 26 и 23 соответственно.
+
+Найдём пользователей, зарегистрировавшихся в сентябре 2020 года:
+```
+db.customers.find ({registered: {$regex : "2020-09"}})
+```
+
+Результат: 1 пользователь
+```
+[
+  {
+    _id: '5',
+    ...
+    registered: '2020-09-09T12:12:36 -05:00',
+    ...
+    languages: [ 'english' ]
+  }
+]
+```
 
 ### Запросы на обновление
 
@@ -280,4 +280,22 @@ friends: [
 ```
 
 ## Создание индексов и сравнение производительности
+
+Сгенерировала данные 200 пользователей, поместила в файл `files/users.js`, загрузила в новую коллекцию `users`.
+
+Результат загрузки первых 3х документов:
+```
+'0': ObjectId("636675c943ac8e800325f61e"),
+'1': ObjectId("636675c943ac8e800325f61f"),
+'2': ObjectId("636675c943ac8e800325f620"),
+...
+```
+
+Посмотрим созданные индексы:
+```	
+db.users.getIndexes()
+```
+
+Результат:
+
 

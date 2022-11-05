@@ -1,3 +1,4 @@
+db.customers.insertMany( 
 [
   {
     "_id": "1",
@@ -430,3 +431,4 @@
     ]
   }
 ]
+)
