@@ -100,21 +100,17 @@ load("files/generated.json")
 
 ## Запросы данных на выборку и обновление
 
-Вывести всех пользователей из коллекции customers:
+### запросы на выборку
+
+Посчитаем количество неактивных пользователей:
 ```
-db.customers.find()
+db.customers.find({isActive: false}).count()
 ```
 
-Результат (несколько строк):
+Результат (4 документа):
 ```
-[
-  {
-    _id: '1',
-    index: 0,
-    guid: '1a22d584-02a7-4914-bf40-a69f89dcc549',
-    isActive: true,
-    balance: '$3,976.47',
-    ...
+customersDB> db.customers.find({isActive: false}).count()
+4
 ```
 
 Выведем пользователей женского пола:
@@ -177,6 +173,109 @@ db.customers.find({}, {name:1, _id: 0}).sort({name: 1})
   { name: 'Kinney Cooke' },
   { name: 'Rosetta Wiley' },
   { name: 'Vang Stout' }
+]
+```
+
+Посмотрим, какие уникальные цвета глаз присутствуют у наших пользователей:
+```
+db.customers.distinct("eyeColor")
+```
+
+Результат:
+```
+customersDB> db.customers.distinct("eyeColor")
+[ 'blue', 'brown', 'green' ]
+```
+
+Найдём пользователей, у которых возрас меньше 30:
+```
+db.customers.find ({age: {$lt : 30}})
+```
+
+Результат: 2 записи с id 1 и 9 и возрастом 26 и 23 соответственно.
+
+### запросы на обновление
+
+Обновим возраст пользователя с id 1 с 26 до 25:
+```
+db.customers.updateOne({_id : "1"}, {$set: {age : 25}})
+```
+
+Результат:
+```
+{
+  acknowledged: true,
+  insertedId: null,
+  matchedCount: 1,
+  modifiedCount: 1,
+  upsertedCount: 0
+}
+```
+
+Новые данные в документе:
+```
+{
+    _id: '1',
+    index: 0,
+    guid: '1a22d584-02a7-4914-bf40-a69f89dcc549',
+    isActive: true,
+    balance: '$3,976.47',
+    picture: 'http://placehold.it/32x32',
+    age: 25,
+    ...
+```
+
+Добавим во все документы поле languages с английским языком по умолчанию:
+```
+db.customers.updateMany({}, {$set: {languages: ["english"]}})
+```
+
+Результат:
+```
+{
+  acknowledged: true,
+  insertedId: null,
+  matchedCount: 10,
+  modifiedCount: 10,
+  upsertedCount: 0
+}
+```
+
+На примере пользователя с id 2 посмотрим результат:
+```
+_id: '2',
+index: 1,
+...
+languages: [ 'english' ]
+```
+
+Пользователю с id 1 добавим новый тег в массив тегов:
+```
+db.customers.updateOne({_id: "1"}, {$addToSet: {tags: "special"}})
+```
+
+Результат:
+```
+tags: [
+      'cupidatat', 'deserunt',
+      'eu',        'laborum',
+      'ad',        'ut',
+      'quis',      'special'
+    ],
+```
+
+Этому же пользователю добавим ещё одного друга:
+```
+db.customers.updateOne({_id: "1"}, {$addToSet: {friends: { id: 3, name: "Helen Blane" }}})
+```
+
+Результат:
+```
+friends: [
+    { id: 0, name: 'Wilson Fields' },
+    { id: 1, name: 'Brenda Gallagher' },
+    { id: 2, name: 'Collier Bond' },
+    { id: 3, name: 'Helen Blane' }
 ]
 ```
 
