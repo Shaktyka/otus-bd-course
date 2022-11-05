@@ -328,7 +328,30 @@ db.superstore.getIndexes()
 
 Коллекция пользователей `customersDB.managers` содержит 239 записей.
 
-Это также искусственно сгенерированные данные.
+Данные искусственно сгенерированы, имеют следующую структуру:
+
+```
+[
+  {
+    _id: ObjectId("636688444032702512887fce"),
+    id: '6366728df7d4153ed72613da',
+    email: 'tameka_welch@letpro.tours',
+    roles: [ 'owner', 'member' ],
+    apiKey: '07c05d65-7418-4179-b14e-bc53df8bca8e',
+    profile: {
+      dob: '1991-09-29',
+      name: 'Tameka Welch',
+      about: 'Ad deserunt dolore incididunt aliqua adipisicing officia anim fugiat. Aliqua labore et culpa reprehenderit aute sunt aliqua tempor consequat minim do.',
+      address: '35 Prescott Place, Strykersville, District Of Columbia',
+      company: 'Letpro',
+      location: { lat: -65.332318, long: 108.224043 }
+    },
+    username: 'tameka91',
+    createdAt: '2012-11-30T08:29:33.889Z',
+    updatedAt: '2012-12-01T08:29:33.889Z'
+  }
+]
+```
 
 Создадим индекс на поле, по которому хотим искать в тексте:
 ```
@@ -347,7 +370,9 @@ profile.about_text
 ```
 
 Результат в Explayn Plan:
+
 ![текстовый_индекс](/images/mongo/text.jpg)
 
 Видно использование индекса:
+
 ![текст_индекс](/images/mongo/text_index.jpg)
