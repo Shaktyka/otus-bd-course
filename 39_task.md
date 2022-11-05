@@ -39,10 +39,9 @@ mkdir mongodata
 docker run -it -v /Users/elena/Documents/mongodata:/data/db -p 27017:27017 --name mongodb -d mongo
 ```
 
-Подключение к контейнеру:
+Подключение к MongoDB в контейнере:
 ```
-docker exec -it mongodb bash
-mongo -host localhost -port 27017  
+docker exec -it mongodb mongosh
 ```
 
 Для запуска и остановки контейнера:
@@ -52,6 +51,37 @@ docker start mongodb
 ```
 
 ## Заполнение данными
+
+Для генерации JSON-данных был использован сервис https://json-generator.com/
+
+Создаёт базу данных customersDB:
+```
+use customersDB
+```
+
+Добавляет данные в коллекцию customers:
+```
+db.customers.insertMany( <данные_из_файла_generated.json> )
+```
+
+Результат добавления:
+```
+{
+  acknowledged: true,
+  insertedIds: {
+    '0': '1',
+    '1': '2',
+    '2': '3',
+    '3': '4',
+    '4': '5',
+    '5': '6',
+    '6': '7',
+    '7': '8',
+    '8': '9',
+    '9': '10'
+  }
+}
+```
 
 ## Запросы данных на выборку и обновление
 
