@@ -281,13 +281,17 @@ friends: [
 
 ## Создание индексов и сравнение производительности
 
-Использован датасет магазина Superstore (USA): https://www.kaggle.com/datasets/roopacalistus/superstore, содержит более 10 000 записей.
+Использован датасет магазина Superstore (USA): https://www.kaggle.com/datasets/roopacalistus/superstore
+
+Датасет содержит более 10 000 записей.
 
 Данные были загружены с помощью MongoDB Compass в коллекцию `customersDB.superstore`.
 
 ![После загрузки](/images/mongo/loaded.jpg)
 
-Посмотрим статистику при фильтрации данных по городу Henderson: выбран 51 документ. Чтобы немного увеличить время выполнения запроса, включила desc-сортировку ({field: -1}).
+Посмотрим статистику при фильтрации данных по городу Henderson: выбран 51 документ. 
+
+Чтобы немного увеличить время выполнения запроса, включила desc-сортировку ({field: -1}).
 
 ![Henderson](/images/mongo/henderson.jpg)
 
