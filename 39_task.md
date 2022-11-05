@@ -16,6 +16,7 @@
 
 MongoDB была установлена на MacOS в докер-контейнер.
 
+Загрузка образа MongoDB:
 ```
 docker pull mongo
 ```
@@ -26,7 +27,7 @@ REPOSITORY       TAG       IMAGE ID       CREATED        SIZE
 mongo            latest    1a5c8f74cf95   9 days ago     667MB
 ```
 
-Создаёт VOLUME для хранения данных:
+Создание VOLUME для хранения данных:
 
 ```
 cd /Users/elena/Documents
@@ -59,7 +60,7 @@ docker start mongodb
 use customersDB
 ```
 
-Добавляет данные в коллекцию customers:
+Добавление данных в коллекцию customers:
 ```
 db.customers.insertMany( <данные_из_файла_generated.json> )
 ```
