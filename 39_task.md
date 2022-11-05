@@ -187,14 +187,14 @@ customersDB> db.customers.distinct("eyeColor")
 [ 'blue', 'brown', 'green' ]
 ```
 
-Найдём пользователей, у которых возрас меньше 30:
+Найдём пользователей, у которых возраст меньше 30:
 ```
 db.customers.find ({age: {$lt : 30}})
 ```
 
 Результат: 2 записи с id 1 и 9 и возрастом 26 и 23 соответственно.
 
-### запросы на обновление
+### Запросы на обновление
 
 Обновим возраст пользователя с id 1 с 26 до 25:
 ```
@@ -257,11 +257,11 @@ db.customers.updateOne({_id: "1"}, {$addToSet: {tags: "special"}})
 Результат:
 ```
 tags: [
-      'cupidatat', 'deserunt',
-      'eu',        'laborum',
-      'ad',        'ut',
-      'quis',      'special'
-    ],
+    'cupidatat', 'deserunt',
+    'eu',        'laborum',
+    'ad',        'ut',
+    'quis',      'special'
+],
 ```
 
 Этому же пользователю добавим ещё одного друга:
