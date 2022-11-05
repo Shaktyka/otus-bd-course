@@ -281,6 +281,8 @@ friends: [
 
 ## Создание индексов и сравнение производительности
 
+### Первый кейс
+
 Использован датасет магазина Superstore (USA): https://www.kaggle.com/datasets/roopacalistus/superstore
 
 Датасет содержит более 10 000 записей.
@@ -321,3 +323,31 @@ db.superstore.getIndexes()
 Скриншот вкладки Explain Plan:
 
 ![После создания индекса](/images/mongo/index.jpg)
+
+### Второй кейс
+
+Коллекция пользователей `customersDB.managers` содержит 239 записей.
+
+Это также искусственно сгенерированные данные.
+
+Создадим индекс на поле, по которому хотим искать в тексте:
+```
+db.managers.createIndex({"profile.about": "text"})
+```
+
+Результат:
+```
+customersDB> db.managers.createIndex({"profile.about": "text"})
+profile.about_text
+```
+
+Проверим в MongoDB Compass результаты запроса со следующим фильтром:
+```
+{$text: {$search: "Dolore"}}
+```
+
+Результат в Explayn Plan:
+![текстовый_индекс](/images/mongo/text.jpg)
+
+Видно использование индекса:
+![текст_индекс](/images/mongo/text_index.jpg)
