@@ -44,14 +44,14 @@ https://dbdiagram.io/d/63499334f0018a1c5f08064b
 | Название | Что содержит |
 | ------ | ------ |
 | titles | обращения |
+| languages | языки |
 | postal_codes | почтовые коды |
 | countries | справочник стран |
 | regions | справочник регионов |
 | cities | справочник городов |
 | streets | справочник улиц |
+| houses | справочник домов |
 | marital_statuses | семейное положение |
 | genders | пол |
-| languages | языки |
 | users | пользователи |
 | user_adresses | связь пользователя с компонентами адреса |
-| curr_languages | языки |
